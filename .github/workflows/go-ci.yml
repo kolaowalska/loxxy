@@ -1,0 +1,24 @@
+name: go CI
+
+on: 
+  push:
+    branches: [ "main", "tests" ] 
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up go
+        uses: actions/setup-go@v5
+        with: 
+          go-version: '1.22'
+
+      - name: build
+        run: go build -v ./...
+
+      - name: test
+        run: go test -v ./internal/scanner/...

@@ -1,0 +1,15 @@
+*.exe
+
+loxxy
+main
+
+*.test
+
+*.out
+coverage.txt
+
+.idea/
+.vscode/
+*.swp
+*.swo
+

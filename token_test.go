@@ -9,7 +9,7 @@ func TestTokenString(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "simple symbol",
+			name:     "Simple symbol",
 			token:    &Token{tokenType: LEFT_PAREN, lexeme: "(", literal: nil, line: 1},
 			expected: "LEFT_PAREN ( <nil>",
 		},

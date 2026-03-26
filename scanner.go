@@ -39,7 +39,7 @@ func newScanner(source string) *Scanner {
 func (s *Scanner) scanTokens() []Token {
 	for !s.isAtEnd() {
 		s.start = s.current
-		s.scanTokens()
+		s.scanToken()
 	}
 
 	s.tokens = append(s.tokens, Token{EOF, "", nil, s.line})

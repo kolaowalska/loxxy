@@ -1,6 +1,8 @@
-package main
+package scanner
 
 import "strconv"
+
+import "github.com/kolaowalska/loxxy/src/reports"
 
 var keywords = map[string]TokenType{
 	"and":    AND,
@@ -29,14 +31,14 @@ type Scanner struct {
 	line    int
 }
 
-func newScanner(source string) *Scanner {
+func NewScanner(source string) *Scanner {
 	return &Scanner{
 		source: source,
 		line:   1,
 	}
 }
 
-func (s *Scanner) scanTokens() []Token {
+func (s *Scanner) ScanTokens() []Token {
 	for !s.isAtEnd() {
 		s.start = s.current
 		s.scanToken()
@@ -114,6 +116,9 @@ func (s *Scanner) scanToken() {
 	case '\n':
 		s.line++
 		break
+	case '"':
+		s.string()
+		break
 
 	default:
 		if s.isDigit(c) {
@@ -121,7 +126,7 @@ func (s *Scanner) scanToken() {
 		} else if s.isAlpha(c) {
 			s.identifier()
 		} else {
-			error(s.line, "unexpected character.") // idk if it uses the error from main.go
+			reporter.Error(s.line, "unexpected character.")
 		}
 		break
 	}
@@ -141,10 +146,10 @@ func (s *Scanner) addTokenWithLiteral(tType TokenType, literal any) {
 
 	s.tokens = append(s.tokens,
 		Token{
-			tokenType: tType,
-			lexeme:    text,
-			literal:   literal,
-			line:      s.line,
+			TokenType: tType,
+			Lexeme:    text,
+			Literal:   literal,
+			Line:      s.line,
 		},
 	)
 }
@@ -203,12 +208,12 @@ func (s *Scanner) string() {
 
 		if s.peek() == '\n' {
 			s.line++
-			s.advance()
 		}
+		s.advance()
 	}
 
 	if s.isAtEnd() {
-		error(s.line, "unterminated string.")
+		reporter.Error(s.line, "unterminated string.")
 		return
 	}
 

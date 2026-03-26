@@ -3,12 +3,15 @@ package main
 import (
 	"bufio"
 	"fmt"
+
+	reports "github.com/kolaowalska/loxxy/src/reports"
+	scanner "github.com/kolaowalska/loxxy/src/scanning"
+
 	"io"
 	"os"
-	"strconv"
 )
 
-var hadError = false
+// var hadError = false
 
 func main() {
 	args := os.Args[1:]
@@ -30,7 +33,7 @@ func runFile(path string) {
 	}
 	run(string(bytes))
 
-	if hadError {
+	if reports.HadError {
 		os.Exit(65)
 	}
 }
@@ -47,27 +50,19 @@ func runPrompt(in io.Reader, out io.Writer) {
 			}
 		}
 		run(line)
-		hadError = false
+		reports.Clear()
 	}
-
 }
 
 func run(source string) {
-	// Scanner scanner = new Scanner(source)
-	// slice of tokens = scanner.scanTokens()
+	newScanner := scanner.NewScanner(source)
+	newScanner.ScanTokens()
 
-	// For now - test if scanTokens would work
-	//for index, token := range tokens {
-	//	fmt.Println(token[index])
-	//}
-	fmt.Println("run(): ", source)
-}
-
-func error(line int, message string) {
-	report(line, "", message)
-}
-
-func report(line int, where string, message string) {
-	fmt.Fprint(os.Stderr, "[line: "+strconv.Itoa(line)+"] error"+where+": "+message)
-	hadError = true
+	// for debugging tests
+	/*
+		tokens := newScanner.ScanTokens()
+		for index := range tokens {
+			fmt.Println(tokens[index])
+		}
+	*/
 }

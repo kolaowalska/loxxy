@@ -1,12 +1,12 @@
-package main
+package scanner
 
 import "fmt"
 
 type Token struct {
-	tokenType TokenType
-	lexeme    string
-	literal   any
-	line      int
+	TokenType TokenType
+	Lexeme    string
+	Literal   any
+	Line      int
 }
 
 /*
@@ -20,5 +20,5 @@ type Token struct {
 	}
 */
 func (t *Token) String() string {
-	return fmt.Sprintf("%v %s %v", t.tokenType, t.lexeme, t.literal)
+	return fmt.Sprintf("%v %s %v", t.TokenType, t.Lexeme, t.Literal)
 }

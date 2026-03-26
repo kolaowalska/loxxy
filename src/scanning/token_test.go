@@ -1,4 +1,4 @@
-package main
+package scanner
 
 import "testing"
 
@@ -10,7 +10,7 @@ func TestTokenString(t *testing.T) {
 	}{
 		{
 			name:     "Simple symbol",
-			token:    &Token{tokenType: LEFT_PAREN, lexeme: "(", literal: nil, line: 1},
+			token:    &Token{TokenType: LEFT_PAREN, Lexeme: "(", Literal: nil, Line: 1},
 			expected: "LEFT_PAREN ( <nil>",
 		},
 		{

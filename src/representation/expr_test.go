@@ -9,12 +9,12 @@ import (
 func TestAstPrinter(t *testing.T) {
 	expression := &Binary{
 		Left: &Unary{
-			Operator: scanner.Token{scanner.MINUS, "-", nil, 1},
-			Right:    &Literal{123},
+			Operator: scanner.Token{TokenType: scanner.MINUS, Lexeme: "-", Literal: nil, Line: 1},
+			Right:    &Literal{Value: 123},
 		},
-		Operator: scanner.Token{scanner.STAR, "*", nil, 1},
+		Operator: scanner.Token{TokenType: scanner.STAR, Lexeme: "*", Literal: nil, Line: 1},
 		Right: &Grouping{
-			Expression: &Literal{45.67},
+			Expression: &Literal{Value: 45.67},
 		},
 	}
 	result := Print(expression)

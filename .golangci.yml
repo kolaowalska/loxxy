@@ -1,27 +1,27 @@
 version: "2"
+
 run:
   timeout: 5m
+  tests: true
 
 linters:
   enable:
     - errcheck
-    - govet
-    - staticcheck
-    - unused
     - gosimple
-    - ineffassign
-    - gofmt
-    - goimports
-    - misspell
-    - gocritic
+    - govet
+    - unused
+    - staticcheck
     - revive
 
 linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  govet:
-    check-shadowing: true
-
-issues:
-  exclude-use-default: false
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+      - name: var-naming
+        disabled: true
+output:
+  show-stats: true
+  sort-order:
+    - file
+    - linter

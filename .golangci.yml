@@ -1,0 +1,25 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - [cite_start]errcheck    # checks if you forgot to handle an error [cite: 7]
+    - gosimple    # suggests easier ways to write go code
+    - govet       # reports suspicious constructs (like bad printf calls)
+    - unused      # finds unused variables/functions
+    - staticcheck # advanced "bug finder"
+    - revive      # general style linter
+
+linters-settings:
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+      - name: var-naming
+        disabled: true
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

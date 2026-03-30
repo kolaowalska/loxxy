@@ -2,7 +2,7 @@ name: go CI
 
 on: 
   push:
-    branches: [ "main", "tests" ] 
+    branches: [ "main"] 
   pull_request:
     branches: [ "main" ]
 
@@ -15,7 +15,7 @@ jobs:
       - name: set up go
         uses: actions/setup-go@v5
         with: 
-          go-version: '1.22'
+          go-version: '1.26'
 
       - name: build
         run: go build -v ./...

@@ -1,6 +1,8 @@
 package representation
 
-import "github.com/kolaowalska/loxxy/src/scanning"
+import (
+	scanner "github.com/kolaowalska/loxxy/src/scanning"
+)
 
 // Expr - Base interface for all expression nodes.
 type Expr interface {

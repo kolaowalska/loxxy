@@ -3,15 +3,27 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"strconv"
 
-	reports "github.com/kolaowalska/loxxy/src/reports"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 
 	"io"
 	"os"
 )
 
-// var hadError = false
+var hadError = false
+
+// LoxReporter - Concrete implementation of scanner.ErrorReporter
+type LoxReporter struct{}
+
+func (r LoxReporter) Error(line int, message string) {
+	report(line, "", message)
+}
+
+func report(line int, where string, message string) {
+	fmt.Fprintln(os.Stderr, "[line: "+strconv.Itoa(line)+"] error"+where+": "+message)
+	hadError = true
+}
 
 func main() {
 	args := os.Args[1:]
@@ -33,7 +45,7 @@ func runFile(path string) {
 	}
 	run(string(bytes))
 
-	if reports.HadError {
+	if hadError {
 		os.Exit(65)
 	}
 }
@@ -50,12 +62,14 @@ func runPrompt(in io.Reader, out io.Writer) {
 			}
 		}
 		run(line)
-		reports.Clear()
+		hadError = false
 	}
 }
 
 func run(source string) {
-	newScanner := scanner.NewScanner(source)
+	reporter := LoxReporter{}
+
+	newScanner := scanner.NewScanner(source, reporter)
 	newScanner.ScanTokens()
 
 	// for debugging tests

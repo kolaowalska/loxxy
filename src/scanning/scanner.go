@@ -112,17 +112,13 @@ func (s *Scanner) scanToken() {
 		} else {
 			s.addToken(SLASH)
 		}
-		break
 	case ' ':
 	case '\r':
 	case '\t':
-		break //Ignore whitespace
 	case '\n':
 		s.line++
-		break
 	case '"':
 		s.string()
-		break
 
 	default:
 		if s.isDigit(c) {
@@ -132,7 +128,6 @@ func (s *Scanner) scanToken() {
 		} else {
 			s.reporter.Error(s.line, "unexpected character.")
 		}
-		break
 	}
 }
 
@@ -205,11 +200,7 @@ func (s *Scanner) number() {
 }
 
 func (s *Scanner) string() {
-	for {
-		if s.peek() == '"' || s.isAtEnd() {
-			break
-		}
-
+	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			s.line++
 		}

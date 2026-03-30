@@ -1,7 +1,27 @@
 version: "2"
+run:
+  timeout: 5m
 
-output:
-  show-stats: true
-  sort-order:
-    - file
-    - linter
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - gofmt
+    - goimports
+    - misspell
+    - gocritic
+    - revive
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    check-shadowing: true
+
+issues:
+  exclude-use-default: false

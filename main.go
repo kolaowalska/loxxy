@@ -21,7 +21,7 @@ func (r LoxReporter) Error(line int, message string) {
 }
 
 func report(line int, where string, message string) {
-	log.Printf("[line: " + strconv.Itoa(line) + "] error" + where + ": " + message)
+	log.Printf("[line: " + strconv.Itoa(line) + "] error" + where + ":" + message)
 	hadError = true
 }
 

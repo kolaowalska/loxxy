@@ -1,20 +1,8 @@
 version: "2"
 
-run:
-  timeout: 5m
-  tests: true
-
 output:
   show-stats: true
   sort-order:
     - file
     - linter
-linters:
-  enable:
-    - errcheck
-    - gosimple
-    - govet
-    - unused
-    - staticcheck
-    - revive
 

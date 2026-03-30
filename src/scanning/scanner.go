@@ -2,7 +2,9 @@ package scanner
 
 import "strconv"
 
-import "github.com/kolaowalska/loxxy/src/reports"
+type ErrorReporter interface {
+	Error(line int, message string)
+}
 
 var keywords = map[string]TokenType{
 	"and":    AND,
@@ -24,17 +26,19 @@ var keywords = map[string]TokenType{
 }
 
 type Scanner struct {
-	source  string
-	tokens  []Token
-	start   int
-	current int
-	line    int
+	source   string
+	tokens   []Token
+	start    int
+	current  int
+	line     int
+	reporter ErrorReporter
 }
 
-func NewScanner(source string) *Scanner {
+func NewScanner(source string, reporter ErrorReporter) *Scanner {
 	return &Scanner{
-		source: source,
-		line:   1,
+		source:   source,
+		line:     1,
+		reporter: reporter,
 	}
 }
 
@@ -126,7 +130,7 @@ func (s *Scanner) scanToken() {
 		} else if s.isAlpha(c) {
 			s.identifier()
 		} else {
-			reporter.Error(s.line, "unexpected character.")
+			s.reporter.Error(s.line, "unexpected character.")
 		}
 		break
 	}
@@ -213,7 +217,7 @@ func (s *Scanner) string() {
 	}
 
 	if s.isAtEnd() {
-		reporter.Error(s.line, "unterminated string.")
+		s.reporter.Error(s.line, "unterminated string.")
 		return
 	}
 

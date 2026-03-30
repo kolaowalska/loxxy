@@ -1,13 +1,18 @@
 package scanner
 
 import (
-	"github.com/kolaowalska/loxxy/src/reports"
 	"testing"
 )
 
-func TestScanner_ValidTokens(t *testing.T) {
-	defer reporter.Clear()
+type MockReporter struct {
+	HadError bool
+}
 
+func (m *MockReporter) Error(line int, message string) {
+	m.HadError = true
+}
+
+func TestScanner_ValidTokens(t *testing.T) {
 	tests := []struct {
 		name     string
 		source   string
@@ -43,11 +48,11 @@ func TestScanner_ValidTokens(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reporter.Clear()
-			scanner := NewScanner(tt.source)
+			mock := &MockReporter{}
+			scanner := NewScanner(tt.source, mock)
 			tokens := scanner.ScanTokens()
 
-			if reporter.HadError {
+			if mock.HadError {
 				t.Fatalf("reporter wywalil error a nie powinien")
 			}
 
@@ -65,8 +70,6 @@ func TestScanner_ValidTokens(t *testing.T) {
 }
 
 func TestScanner_LexicalErrors(t *testing.T) {
-	defer reporter.Clear()
-
 	tests := []struct {
 		name   string
 		source string
@@ -79,12 +82,12 @@ func TestScanner_LexicalErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reporter.Clear() // Reset before scanning
-			scanner := NewScanner(tt.source)
+			mock2 := &MockReporter{}
+			scanner := NewScanner(tt.source, mock2)
 			scanner.ScanTokens()
 
 			// ERROR IS EXPECTED
-			if !reporter.HadError {
+			if !mock2.HadError {
 				t.Errorf("expected scanner to report an error for %q, but it didn't", tt.source)
 			}
 		})

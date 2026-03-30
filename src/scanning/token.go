@@ -22,8 +22,3 @@ type Token struct {
 func (t *Token) String() string {
 	return fmt.Sprintf("%v %s %v", t.TokenType, t.Lexeme, t.Literal)
 }
-
-func someTestFunction() {
-	x := 42
-
-}

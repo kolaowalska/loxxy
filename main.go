@@ -3,12 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"log"
+	"os"
 	"strconv"
 
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
-
-	"io"
-	"os"
 )
 
 var hadError = false
@@ -21,8 +21,12 @@ func (r LoxReporter) Error(line int, message string) {
 }
 
 func report(line int, where string, message string) {
-	fmt.Fprintln(os.Stderr, "[line: "+strconv.Itoa(line)+"] error"+where+": "+message)
+	log.Printf("[line: " + strconv.Itoa(line) + "] error" + where + ": " + message)
 	hadError = true
+}
+
+func init() {
+	log.SetFlags(0)
 }
 
 func main() {
@@ -40,7 +44,7 @@ func main() {
 func runFile(path string) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		log.Printf("error: %v\n", err)
 		os.Exit(66)
 	}
 	run(string(bytes))
@@ -53,13 +57,19 @@ func runFile(path string) {
 func runPrompt(in io.Reader, out io.Writer) {
 	reader := bufio.NewReader(in)
 	for {
-		fmt.Fprint(out, "> ")
+		_, err := fmt.Fprint(out, "> ")
+		if err != nil {
+			log.Printf("error writing prompt: %v\n", err)
+			break
+		}
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
 				// exit on end of file (ctrl+d)
 				break
 			}
+			log.Printf("error reading prompt: %v\n", err)
+			break
 		}
 		run(line)
 		hadError = false

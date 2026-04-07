@@ -62,22 +62,116 @@ func (p *Parser) equality() (representation.Expr, error) {
 	return nil, nil
 }
 
+// comparison: term (( ">" | ">=" | "<" | "<=" ) term )*
 func (p *Parser) comparison() (representation.Expr, error) {
-	return nil, nil
+	expr, err := p.term()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(scanner.GREATER, scanner.GREATER_EQUAL, scanner.LESS, scanner.LESS, scanner.LESS_EQUAL) {
+		operator := p.previous()
+		right, err := p.term()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = &representation.Binary{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+
+	return expr, nil
 }
 
+// term: factor (( "-" | "+" ) factor )*
 func (p *Parser) term() (representation.Expr, error) {
-	return nil, nil
+	expr, err := p.factor()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(scanner.MINUS, scanner.PLUS) {
+		operator := p.previous()
+		right, err := p.factor()
+		if err != nil {
+			return nil, err
+		}
+		expr = &representation.Binary{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+
+	return expr, nil
 }
 
+// factor: unary (( "/" | "*" ) unary )*
 func (p *Parser) factor() (representation.Expr, error) {
-	return nil, nil
+	expr, err := p.unary()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(scanner.SLASH, scanner.STAR) {
+		operator := p.previous()
+		right, err := p.unary()
+		if err != nil {
+			return nil, err
+		}
+		expr = &representation.Binary{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+
+	return expr, nil
 }
 
+// unary -> ( "!" | "-" ) unary | primary
 func (p *Parser) unary() (representation.Expr, error) {
-	return nil, nil
+	if p.match(scanner.BANG, scanner.MINUS) {
+		operator := p.previous()
+		right, err := p.unary() // JESLI COS SIE PETLI TO PEWNIE DLATEGO XD
+		if err != nil {
+			return nil, err
+		}
+
+		return &representation.Unary{
+			Operator: operator,
+			Right:    right,
+		}, nil
+	}
+
+	return p.primary()
 }
 
+// primary: NUMBER | STRING | "true" | "false" | "nil" | "(" expr ")" | IDENTIFIER
 func (p *Parser) primary() (representation.Expr, error) {
-	return nil, nil
+	if p.match(scanner.TRUE) {
+		return &representation.Literal{Value: true}, nil
+	}
+	if p.match(scanner.FALSE) {
+		return &representation.Literal{Value: false}, nil
+	}
+	if p.match(scanner.NIL) {
+		return &representation.Literal{Value: nil}, nil
+	}
+	if p.match(scanner.NUMBER, scanner.STRING) {
+		return &representation.Literal{Value: p.previous().Literal}, nil
+	}
+	if p.match(scanner.LEFT_PAREN) {
+		_, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO: consume() checks for the closing parenthesis
+	}
+
+	return &representation.Literal{Value: p.previous().Literal}, nil
 }

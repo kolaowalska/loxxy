@@ -47,6 +47,11 @@ func (p *Parser) match(types ...scanner.TokenType) bool {
 	return false
 }
 
+// TODO: empty body,
+func (p *Parser) consume(t scanner.TokenType, message string) {
+	return
+}
+
 func (p *Parser) check(t scanner.TokenType) bool {
 	if p.isAtEnd() {
 		return false
@@ -73,9 +78,27 @@ func (p *Parser) previous() scanner.Token {
 	return p.tokens[p.current-1]
 }
 
-// TODO
 func (p *Parser) equality() (representation.Expr, error) {
-	return nil, nil
+	expr, err := p.comparison()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(scanner.BANG_EQUAL, scanner.EQUAL_EQUAL) {
+		operator := p.previous()
+
+		right, err := p.comparison()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = &representation.Binary{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+	return expr, nil
 }
 
 // comparison: term (( ">" | ">=" | "<" | "<=" ) term )*
@@ -181,12 +204,13 @@ func (p *Parser) primary() (representation.Expr, error) {
 		return &representation.Literal{Value: p.previous().Literal}, nil
 	}
 	if p.match(scanner.LEFT_PAREN) {
-		_, err := p.expression()
+		expr, err := p.expression()
 		if err != nil {
 			return nil, err
 		}
 
-		// TODO: consume() checks for the closing parenthesis
+		p.consume(scanner.RIGHT_PAREN, "Expect '?' after expression.")
+		return &representation.Grouping{Expression: expr}, nil
 	}
 
 	p.reporter.Error(p.peek().Line, "Expect expression.")

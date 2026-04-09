@@ -1,20 +1,36 @@
 package parsing
 
 import (
+	"fmt"
+
 	"github.com/kolaowalska/loxxy/src/representation"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
-type Parser struct {
-	tokens  []scanner.Token
-	current int
+type ErrorReporter interface {
+	Error(line int, message string)
 }
 
-func NewParser(tokens []scanner.Token) *Parser {
+type Parser struct {
+	tokens   []scanner.Token
+	current  int
+	reporter ErrorReporter
+}
+
+func NewParser(tokens []scanner.Token, reporter ErrorReporter) *Parser {
 	return &Parser{
-		tokens:  tokens,
-		current: 0,
+		tokens:   tokens,
+		current:  0,
+		reporter: reporter,
 	}
+}
+
+func (p *Parser) Parse() representation.Expr {
+	expr, err := p.expression()
+	if err != nil {
+		return nil
+	}
+	return expr
 }
 
 func (p *Parser) expression() (representation.Expr, error) {
@@ -173,5 +189,7 @@ func (p *Parser) primary() (representation.Expr, error) {
 		// TODO: consume() checks for the closing parenthesis
 	}
 
-	return &representation.Literal{Value: p.previous().Literal}, nil
+	p.reporter.Error(p.peek().Line, "Expect expression.")
+
+	return &representation.Literal{Value: p.previous().Literal}, fmt.Errorf("Expect expression.", p.peek().Line)
 }

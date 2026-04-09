@@ -30,6 +30,9 @@ func Evaluate(expr representation.Expr) (any, error) {
 		case scanner.BANG:
 			return !isTruthy(right), nil
 
+		default:
+			return nil, fmt.Errorf("it's not supposed to go there, error in func Evaluate in Unary case - unknown operator")
+
 		}
 
 	case *representation.Binary:
@@ -87,10 +90,13 @@ func Evaluate(expr representation.Expr) (any, error) {
 
 		case scanner.EQUAL_EQUAL:
 			return left.(float64) == right.(float64), nil
+
+		default:
+			return nil, fmt.Errorf("it's not supposed to go there, error in func Evaluate in Binary case - unknown operator")
 		}
 	}
 
-	return nil, fmt.Errorf("Unknown expression type.")
+	return nil, fmt.Errorf("unknown expression type")
 }
 
 func isTruthy(obj any) bool {

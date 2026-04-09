@@ -25,6 +25,10 @@ func Evaluate(expr representation.Expr) (any, error) {
 		switch e.Operator.TokenType {
 
 		case scanner.MINUS:
+			err := checkNumberOperand(e.Operator, right)
+			if err != nil {
+				return nil, err
+			}
 			return -right.(float64), nil
 
 		case scanner.BANG:
@@ -49,15 +53,27 @@ func Evaluate(expr representation.Expr) (any, error) {
 		switch e.Operator.TokenType {
 
 		case scanner.MINUS:
+			err := checkNumberOperands(e.Operator, left, right)
+			if err != nil {
+				return nil, err
+			}
 			return left.(float64) - right.(float64), nil
 
 		case scanner.SLASH:
+			err := checkNumberOperands(e.Operator, left, right)
+			if err != nil {
+				return nil, err
+			}
 			if right.(float64) == 0 { //TODO: test if needed
-				return nil, nil //TODO: insert runtime error on e.Operator, "Cannot divide by zero."
+				return nil, NewRuntimeError(e.Operator, "Cannot divide by zero.")
 			}
 			return left.(float64) / right.(float64), nil
 
 		case scanner.STAR:
+			err := checkNumberOperands(e.Operator, left, right)
+			if err != nil {
+				return nil, err
+			}
 			return left.(float64) * right.(float64), nil
 
 		case scanner.PLUS:
@@ -71,18 +87,34 @@ func Evaluate(expr representation.Expr) (any, error) {
 					return l + r, nil
 				}
 			}
-			return nil, nil //TODO: runtime error on e.Operator, "Operands must be two numbers or two strings."
+			return nil, NewRuntimeError(e.Operator, "Operands must be two numbers or two strings.")
 
 		case scanner.GREATER:
+			err := checkNumberOperands(e.Operator, left, right)
+			if err != nil {
+				return nil, err
+			}
 			return left.(float64) > right.(float64), nil
 
 		case scanner.GREATER_EQUAL:
+			err := checkNumberOperands(e.Operator, left, right)
+			if err != nil {
+				return nil, err
+			}
 			return left.(float64) >= right.(float64), nil
 
 		case scanner.LESS:
+			err := checkNumberOperands(e.Operator, left, right)
+			if err != nil {
+				return nil, err
+			}
 			return left.(float64) < right.(float64), nil
 
 		case scanner.LESS_EQUAL:
+			err := checkNumberOperands(e.Operator, left, right)
+			if err != nil {
+				return nil, err
+			}
 			return left.(float64) <= right.(float64), nil
 
 		case scanner.BANG_EQUAL:

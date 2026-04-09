@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 
+	parser "github.com/kolaowalska/loxxy/src/parsing"
+	representation "github.com/kolaowalska/loxxy/src/representation"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
@@ -80,13 +82,14 @@ func run(source string) {
 	reporter := LoxReporter{}
 
 	newScanner := scanner.NewScanner(source, reporter)
-	newScanner.ScanTokens()
+	tokens := newScanner.ScanTokens()
 
-	// for debugging tests
-	/*
-		tokens := newScanner.ScanTokens()
-		for index := range tokens {
-			fmt.Println(tokens[index])
-		}
-	*/
+	newParser := parser.NewParser(tokens, reporter)
+	expression := newParser.Parse()
+
+	if hadError {
+		return
+	}
+
+	fmt.Println(representation.Print(expression))
 }

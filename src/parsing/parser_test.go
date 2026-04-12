@@ -12,7 +12,7 @@ type MockReporter struct {
 	LastMessage string
 }
 
-func (m *MockReporter) error(t scanner.Token, message string) {
+func (m *MockReporter) TokenError(t scanner.Token, message string) {
 	m.HadError = true
 	m.LastMessage = message
 }

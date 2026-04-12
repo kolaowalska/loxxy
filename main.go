@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	parser "github.com/kolaowalska/loxxy/src/parsing"
 	representation "github.com/kolaowalska/loxxy/src/representation"

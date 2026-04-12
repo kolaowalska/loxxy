@@ -35,7 +35,7 @@ func (r LoxReporter) TokenError(t scanner.Token, message string) {
 	} else {
 		report(t.Line, " at '"+t.Lexeme+"'", message)
 	}
-
+}
 func reportRuntimeError(err *evaluation.RuntimeError) {
 	msg := fmt.Sprintf("%s\n[line %d]", err.Message, err.Token.Line)
 	log.Print(msg)

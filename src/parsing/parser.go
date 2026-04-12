@@ -215,5 +215,5 @@ func (p *Parser) primary() (representation.Expr, error) {
 
 	p.reporter.Error(p.peek().Line, "Expect expression.")
 
-	return &representation.Literal{Value: p.previous().Literal}, fmt.Errorf("expect expression at line %d", p.peek().Line)
+	return nil, fmt.Errorf("expect expression at line %d", p.peek().Line)
 }

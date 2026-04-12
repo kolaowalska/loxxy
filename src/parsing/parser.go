@@ -228,26 +228,28 @@ func (p *Parser) primary() (representation.Expr, error) {
 	return nil, p.error(p.peek(), "Expect expression.")
 }
 
-func (p *Parser) synchronize() {
-	p.advance()
+// FIX: UNCOMMENT IF NEEDED
 
-	for !p.isAtEnd() {
-		if p.previous().TokenType == scanner.SEMICOLON {
-			return
-		}
-
-		switch p.peek().TokenType {
-		case scanner.CLASS:
-		case scanner.FUN:
-		case scanner.VAR:
-		case scanner.FOR:
-		case scanner.IF:
-		case scanner.WHILE:
-		case scanner.PRINT:
-		case scanner.RETURN:
-			return
-		}
-	}
-
-	p.advance()
-}
+// func (p *Parser) synchronize() {
+// 	p.advance()
+//
+// 	for !p.isAtEnd() {
+// 		if p.previous().TokenType == scanner.SEMICOLON {
+// 			return
+// 		}
+//
+// 		switch p.peek().TokenType {
+// 		case scanner.CLASS:
+// 		case scanner.FUN:
+// 		case scanner.VAR:
+// 		case scanner.FOR:
+// 		case scanner.IF:
+// 		case scanner.WHILE:
+// 		case scanner.PRINT:
+// 		case scanner.RETURN:
+// 			return
+// 		}
+// 	}
+//
+// 	p.advance()
+// }

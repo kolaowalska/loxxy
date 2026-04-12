@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	parser "github.com/kolaowalska/loxxy/src/parsing"
 	representation "github.com/kolaowalska/loxxy/src/representation"
@@ -25,6 +26,13 @@ func (r LoxReporter) Error(line int, message string) {
 func report(line int, where string, message string) {
 	log.Print("[line: " + strconv.Itoa(line) + "] error" + where + ": " + message)
 	hadError = true
+}
+func (r LoxReporter) TokenError(t scanner.Token, message string) {
+	if t.TokenType == scanner.EOF {
+		report(t.Line, " at end", message)
+	} else {
+		report(t.Line, " at '"+t.Lexeme+"'", message)
+	}
 }
 
 func init() {

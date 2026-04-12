@@ -108,7 +108,7 @@ func (p *Parser) comparison() (representation.Expr, error) {
 		return nil, err
 	}
 
-	for p.match(scanner.GREATER, scanner.GREATER_EQUAL, scanner.LESS, scanner.LESS, scanner.LESS_EQUAL) {
+	for p.match(scanner.GREATER, scanner.GREATER_EQUAL, scanner.LESS, scanner.LESS_EQUAL) {
 		operator := p.previous()
 		right, err := p.term()
 		if err != nil {
@@ -209,11 +209,11 @@ func (p *Parser) primary() (representation.Expr, error) {
 			return nil, err
 		}
 
-		p.consume(scanner.RIGHT_PAREN, "Expect '?' after expression.")
+		p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")
 		return &representation.Grouping{Expression: expr}, nil
 	}
 
 	p.reporter.Error(p.peek().Line, "Expect expression.")
 
-	return &representation.Literal{Value: p.previous().Literal}, fmt.Errorf("Expect expression.", p.peek().Line)
+	return &representation.Literal{Value: p.previous().Literal}, fmt.Errorf("expect expression at line %d", p.peek().Line)
 }

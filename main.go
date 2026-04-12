@@ -28,6 +28,14 @@ func report(line int, where string, message string) {
 	log.Print("[line: " + strconv.Itoa(line) + "] error" + where + ": " + message)
 	hadError = true
 }
+
+func (r LoxReporter) TokenError(t scanner.Token, message string) {
+	if t.TokenType == scanner.EOF {
+		report(t.Line, " at end", message)
+	} else {
+		report(t.Line, " at '"+t.Lexeme+"'", message)
+	}
+}
 func reportRuntimeError(err *evaluation.RuntimeError) {
 	msg := fmt.Sprintf("%s\n[line %d]", err.Message, err.Token.Line)
 	log.Print(msg)

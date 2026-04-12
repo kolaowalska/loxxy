@@ -9,6 +9,7 @@ import (
 
 type ErrorReporter interface {
 	Error(line int, message string)
+	TokenError(t scanner.Token, message string)
 }
 
 type Parser struct {
@@ -47,16 +48,23 @@ func (p *Parser) match(types ...scanner.TokenType) bool {
 	return false
 }
 
-// TODO: empty body,
-func (p *Parser) consume(t scanner.TokenType, message string) {
-	return
-}
-
 func (p *Parser) check(t scanner.TokenType) bool {
 	if p.isAtEnd() {
 		return false
 	}
 	return p.peek().TokenType == t
+}
+
+func (p *Parser) consume(t scanner.TokenType, message string) (scanner.Token, error) {
+	if p.check(t) {
+		return p.advance(), nil
+	}
+	return p.peek(), p.error(p.peek(), message)
+}
+
+func (p *Parser) error(t scanner.Token, message string) error {
+	p.reporter.TokenError(t, message)
+	return fmt.Errorf("%s", message)
 }
 
 func (p *Parser) advance() scanner.Token {
@@ -209,11 +217,37 @@ func (p *Parser) primary() (representation.Expr, error) {
 			return nil, err
 		}
 
-		p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")
+		_, err = p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")
+		if err != nil {
+			return nil, err
+		}
+
 		return &representation.Grouping{Expression: expr}, nil
 	}
 
-	p.reporter.Error(p.peek().Line, "Expect expression.")
+	return nil, p.error(p.peek(), "Expect expression.")
+}
 
-	return nil, fmt.Errorf("expect expression at line %d", p.peek().Line)
+func (p *Parser) synchronize() {
+	p.advance()
+
+	for !p.isAtEnd() {
+		if p.previous().TokenType == scanner.SEMICOLON {
+			return
+		}
+
+		switch p.peek().TokenType {
+		case scanner.CLASS:
+		case scanner.FUN:
+		case scanner.VAR:
+		case scanner.FOR:
+		case scanner.IF:
+		case scanner.WHILE:
+		case scanner.PRINT:
+		case scanner.RETURN:
+			return
+		}
+	}
+
+	p.advance()
 }

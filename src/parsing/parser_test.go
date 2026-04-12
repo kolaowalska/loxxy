@@ -12,6 +12,10 @@ type MockReporter struct {
 	LastMessage string
 }
 
+func (m *MockReporter) error(t scanner.Token, message string) {
+	m.HadError = true
+	m.LastMessage = message
+}
 func (m *MockReporter) Error(line int, message string) {
 	m.HadError = true
 	m.LastMessage = message
@@ -103,7 +107,6 @@ func TestParser_SyntaxErrors(t *testing.T) {
 	}{
 		{"missing expression after operator", "1 + ", "Expect expression."},
 		{"starting with binary operator", "* 5", "Expect expression."},
-		{"starting with unary operator", "- 5", "Expect expression."},
 		{"missing right parenthesis", "(1 + 2", "Expect ')' after expression."},
 		{"only unary operator", "-", "Expect expression."},
 		{"empty parenthesis", "()", "Expect expression."},

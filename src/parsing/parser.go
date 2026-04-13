@@ -26,6 +26,8 @@ func NewParser(tokens []scanner.Token, reporter ErrorReporter) *Parser {
 	}
 }
 
+// TODO -------------------------------------------------------
+
 func (p *Parser) Parse() representation.Expr {
 	expr, err := p.expression()
 	if err != nil {
@@ -37,6 +39,32 @@ func (p *Parser) Parse() representation.Expr {
 func (p *Parser) expression() (representation.Expr, error) {
 	return p.equality()
 }
+
+func (p *Parser) declaration() (representation.Stmt, error) {
+	return nil, nil
+}
+
+func (p *Parser) varDeclaration() (representation.Stmt, error) {
+	return nil, nil
+}
+
+func (p *Parser) statement() (representation.Stmt, error) {
+	return nil, nil
+}
+
+func (p *Parser) printStatement() (representation.Stmt, error) {
+	return nil, nil
+}
+
+func (p *Parser) expressionStatement() (representation.Stmt, error) {
+	return nil, nil
+}
+
+func (p *Parser) block() ([]representation.Stmt, error) {
+	return nil, nil
+}
+
+// ------------------------------------------------------------
 
 func (p *Parser) match(types ...scanner.TokenType) bool {
 	for _, t := range types {

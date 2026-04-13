@@ -35,7 +35,7 @@ func TestEvaluate(t *testing.T) {
 		{"Unary bang empty string", &representation.Unary{Operator: scanner.Token{TokenType: scanner.BANG}, Right: &representation.Literal{Value: ""}}, false, false},
 
 		// Binary - arithmetics
-		{"Binary add numbers", &representation.Binary{Left: &representation.Literal{Value: 2.0}, Operator: scanner.Token{TokenType: scanner.PLUS}, Right: &representation.Literal{3.0}}, 5.0, false},
+		{"Binary add numbers", &representation.Binary{Left: &representation.Literal{Value: 2.0}, Operator: scanner.Token{TokenType: scanner.PLUS}, Right: &representation.Literal{Value: 3.0}}, 5.0, false},
 		{"Binary add strings", &representation.Binary{Left: &representation.Literal{Value: "ala"}, Operator: scanner.Token{TokenType: scanner.PLUS}, Right: &representation.Literal{Value: "kot"}}, "alakot", false},
 		{"Binary add mixed", &representation.Binary{Left: &representation.Literal{Value: 2.0}, Operator: scanner.Token{TokenType: scanner.PLUS}, Right: &representation.Literal{Value: "kot"}}, nil, true},
 		{"Binary subtract", &representation.Binary{Left: &representation.Literal{Value: 5.0}, Operator: scanner.Token{TokenType: scanner.MINUS}, Right: &representation.Literal{Value: 3.0}}, 2.0, false},
@@ -52,8 +52,8 @@ func TestEvaluate(t *testing.T) {
 		{"Binary equal equal numbers", &representation.Binary{Left: &representation.Literal{Value: 5.0}, Operator: scanner.Token{TokenType: scanner.EQUAL_EQUAL}, Right: &representation.Literal{Value: 5.0}}, true, false},
 		{"Binary equal equal strings", &representation.Binary{Left: &representation.Literal{Value: "ala"}, Operator: scanner.Token{TokenType: scanner.EQUAL_EQUAL}, Right: &representation.Literal{Value: "kot"}}, false, false},
 		{"Binary equal equal booleans", &representation.Binary{Left: &representation.Literal{Value: false}, Operator: scanner.Token{TokenType: scanner.EQUAL_EQUAL}, Right: &representation.Literal{Value: false}}, true, false},
-		{"Binary equal equal mixed types", &representation.Binary{Left: &representation.Literal{"abc"}, Operator: scanner.Token{TokenType: scanner.EQUAL_EQUAL}, Right: &representation.Literal{10.0}}, false, false},
-		{"Binary equal equal nil and number", &representation.Binary{Left: &representation.Literal{nil}, Operator: scanner.Token{TokenType: scanner.EQUAL_EQUAL}, Right: &representation.Literal{0.0}}, false, false},
+		{"Binary equal equal mixed types", &representation.Binary{Left: &representation.Literal{Value: "abc"}, Operator: scanner.Token{TokenType: scanner.EQUAL_EQUAL}, Right: &representation.Literal{Value: 10.0}}, false, false},
+		{"Binary equal equal nil and number", &representation.Binary{Left: &representation.Literal{Value: nil}, Operator: scanner.Token{TokenType: scanner.EQUAL_EQUAL}, Right: &representation.Literal{Value: 0.0}}, false, false},
 		{"Binary bang equal numbers", &representation.Binary{Left: &representation.Literal{Value: 5.0}, Operator: scanner.Token{TokenType: scanner.BANG_EQUAL}, Right: &representation.Literal{Value: 3.0}}, true, false},
 		{"Binary bang equal strings", &representation.Binary{Left: &representation.Literal{Value: "ala"}, Operator: scanner.Token{TokenType: scanner.BANG_EQUAL}, Right: &representation.Literal{Value: "kot"}}, true, false},
 		{"Binary bang equal booleans", &representation.Binary{Left: &representation.Literal{Value: false}, Operator: scanner.Token{TokenType: scanner.BANG_EQUAL}, Right: &representation.Literal{Value: false}}, false, false},

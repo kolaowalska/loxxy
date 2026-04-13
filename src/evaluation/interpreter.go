@@ -7,6 +7,28 @@ import (
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
+type Interpreter struct {
+	environment *Environment
+}
+
+func NewInterpreter() *Interpreter {
+	return &Interpreter{
+		environment: NewEnvironment(nil),
+	}
+}
+
+// TODO: implement methods
+
+func (i *Interpreter) Interpret(statements []representation.Stmt) error {
+	// TODO
+	return nil
+}
+
+func (i *Interpreter) Execute(stmt representation.Stmt) error {
+	// TODO
+	return nil
+}
+
 func Evaluate(expr representation.Expr) (any, error) {
 	switch e := expr.(type) {
 

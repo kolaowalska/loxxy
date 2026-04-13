@@ -35,3 +35,8 @@ type Unary struct {
 }
 
 func (u *Unary) exprNode() {}
+
+// TODO
+
+type Variable struct{}
+type Assign struct{}

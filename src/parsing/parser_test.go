@@ -91,7 +91,7 @@ func TestParser_ValidExpressions(t *testing.T) {
 				t.Fatalf("parser returned nil expression: %q", tt.source)
 			}
 
-			result := representation.Print(expr)
+			result := representation.PrintAST(expr)
 			if result != tt.expected {
 				t.Errorf("expected AST %q, got %q", tt.expected, result)
 			}

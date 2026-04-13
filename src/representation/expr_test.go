@@ -17,10 +17,10 @@ func TestAstPrinter(t *testing.T) {
 			Expression: &Literal{Value: 45.67},
 		},
 	}
-	result := Print(expression)
+	result := PrintAST(expression)
 	expected := "(* (- 123) (group 45.67))"
 
 	if result != expected {
-		t.Errorf("Expected %s, got %s", expected, result)
+		t.Errorf("expected %s, got %s", expected, result)
 	}
 }

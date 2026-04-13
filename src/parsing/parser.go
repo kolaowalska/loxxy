@@ -211,6 +211,9 @@ func (p *Parser) primary() (representation.Expr, error) {
 	if p.match(scanner.NUMBER, scanner.STRING) {
 		return &representation.Literal{Value: p.previous().Literal}, nil
 	}
+	if p.match(scanner.IDENTIFIER) {
+		return &representation.Variable{p.previous()}, nil
+	}
 	if p.match(scanner.LEFT_PAREN) {
 		expr, err := p.expression()
 		if err != nil {

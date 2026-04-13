@@ -22,7 +22,7 @@ func TestEvaluate(t *testing.T) {
 		{"Literal Nil", &representation.Literal{Value: nil}, nil, false},
 
 		// Grouping
-		{"Grouping", &representation.Grouping{Expression: &representation.Literal{10.0}}, 10.0, false},
+		{"Grouping", &representation.Grouping{Expression: &representation.Literal{Value: 10.0}}, 10.0, false},
 
 		// Unary
 		{"Unary bang true", &representation.Unary{Operator: scanner.Token{TokenType: scanner.BANG}, Right: &representation.Literal{Value: true}}, false, false},
@@ -31,8 +31,8 @@ func TestEvaluate(t *testing.T) {
 		{"Unary bang number", &representation.Unary{Operator: scanner.Token{TokenType: scanner.BANG}, Right: &representation.Literal{Value: 5.0}}, false, false},
 		{"Unary minus number", &representation.Unary{Operator: scanner.Token{TokenType: scanner.MINUS}, Right: &representation.Literal{Value: 5.0}}, -5.0, false},
 		{"Unary minus string", &representation.Unary{Operator: scanner.Token{TokenType: scanner.MINUS}, Right: &representation.Literal{Value: "str"}}, nil, true},
-		{"Unary bang zero", &representation.Unary{Operator: scanner.Token{TokenType: scanner.BANG}, Right: &representation.Literal{0.0}}, false, false},
-		{"Unary bang empty string", &representation.Unary{Operator: scanner.Token{TokenType: scanner.BANG}, Right: &representation.Literal{""}}, false, false},
+		{"Unary bang zero", &representation.Unary{Operator: scanner.Token{TokenType: scanner.BANG}, Right: &representation.Literal{Value: 0.0}}, false, false},
+		{"Unary bang empty string", &representation.Unary{Operator: scanner.Token{TokenType: scanner.BANG}, Right: &representation.Literal{Value: ""}}, false, false},
 
 		// Binary - arithmetics
 		{"Binary add numbers", &representation.Binary{Left: &representation.Literal{Value: 2.0}, Operator: scanner.Token{TokenType: scanner.PLUS}, Right: &representation.Literal{3.0}}, 5.0, false},

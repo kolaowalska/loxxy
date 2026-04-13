@@ -36,7 +36,12 @@ type Unary struct {
 
 func (u *Unary) exprNode() {}
 
-// TODO
+type Variable struct {
+	Name scanner.Token
+}
+type Assign struct {
+	Name  scanner.Token
+	Value Expr
+}
 
-type Variable struct{}
-type Assign struct{}
+func (a *Assign) exprNode() {}

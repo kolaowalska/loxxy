@@ -7,11 +7,15 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
+	"github.com/kolaowalska/loxxy/src/evaluation"
+	parser "github.com/kolaowalska/loxxy/src/parsing"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
 var hadError = false
+var hadRuntimeError = false
 
 // LoxReporter - Concrete implementation of scanner.ErrorReporter
 type LoxReporter struct{}
@@ -23,6 +27,19 @@ func (r LoxReporter) Error(line int, message string) {
 func report(line int, where string, message string) {
 	log.Print("[line: " + strconv.Itoa(line) + "] error" + where + ": " + message)
 	hadError = true
+}
+
+func (r LoxReporter) TokenError(t scanner.Token, message string) {
+	if t.TokenType == scanner.EOF {
+		report(t.Line, " at end", message)
+	} else {
+		report(t.Line, " at '"+t.Lexeme+"'", message)
+	}
+}
+func reportRuntimeError(err *evaluation.RuntimeError) {
+	msg := fmt.Sprintf("%s\n[line %d]", err.Message, err.Token.Line)
+	log.Print(msg)
+	hadRuntimeError = true
 }
 
 func init() {
@@ -52,6 +69,9 @@ func runFile(path string) {
 	if hadError {
 		os.Exit(65)
 	}
+	if hadRuntimeError {
+		os.Exit(70)
+	}
 }
 
 func runPrompt(in io.Reader, out io.Writer) {
@@ -80,13 +100,33 @@ func run(source string) {
 	reporter := LoxReporter{}
 
 	newScanner := scanner.NewScanner(source, reporter)
-	newScanner.ScanTokens()
+	tokens := newScanner.ScanTokens()
 
-	// for debugging tests
-	/*
-		tokens := newScanner.ScanTokens()
-		for index := range tokens {
-			fmt.Println(tokens[index])
+	newParser := parser.NewParser(tokens, reporter)
+	expression := newParser.Parse()
+
+	if hadError {
+		return
+	}
+	result, err := evaluation.Evaluate(expression)
+	if err != nil {
+		if runtimeErr, ok := err.(*evaluation.RuntimeError); ok {
+			reportRuntimeError(runtimeErr)
+		} else {
+			log.Printf("Error: %v", err)
 		}
-	*/
+		return
+	}
+	fmt.Println(stringify(result))
+}
+func stringify(obj any) string {
+	if obj == nil {
+		return "nil"
+	}
+	if val, ok := obj.(float64); ok {
+		text := fmt.Sprintf("%v", val)
+		return strings.TrimSuffix(text, ".0")
+	}
+
+	return fmt.Sprintf("%v", obj)
 }

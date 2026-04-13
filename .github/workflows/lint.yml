@@ -5,6 +5,7 @@ on:
       - main
       - master
       - tests
+      - parser
   pull_request:
 
 permissions:

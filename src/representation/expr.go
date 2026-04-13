@@ -39,6 +39,9 @@ func (u *Unary) exprNode() {}
 type Variable struct {
 	Name scanner.Token
 }
+
+func (v *Variable) exprNode() {}
+
 type Assign struct {
 	Name  scanner.Token
 	Value Expr

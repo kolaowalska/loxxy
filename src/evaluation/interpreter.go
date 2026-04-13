@@ -88,10 +88,24 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 		return e.Value, nil
 
 	case *representation.Grouping:
-		return Evaluate(e.Expression)
+		return i.Evaluate(e.Expression)
+
+	case *representation.Variable:
+		return i.environment.Get(e.Name)
+
+	case *representation.Assign:
+		value, err := i.Evaluate(e.Value)
+		if err != nil {
+			return nil, err
+		}
+		err = i.environment.Assign(e.Name, value)
+		if err != nil {
+			return nil, err
+		}
+		return value, nil
 
 	case *representation.Unary:
-		right, err := Evaluate(e.Right)
+		right, err := i.Evaluate(e.Right)
 		if err != nil {
 			return nil, err
 		}
@@ -114,12 +128,12 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 		}
 
 	case *representation.Binary:
-		left, err := Evaluate(e.Left)
+		left, err := i.Evaluate(e.Left)
 		if err != nil {
 			return nil, err
 		}
 
-		right, err := Evaluate(e.Right)
+		right, err := i.Evaluate(e.Right)
 		if err != nil {
 			return nil, err
 		}

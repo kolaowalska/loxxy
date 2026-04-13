@@ -4,7 +4,7 @@ type Stmt interface {
 	stmtNode()
 }
 
-// TODO
+// TODO: implement methods
 
 type Expression struct{}
 type Print struct{}

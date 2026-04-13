@@ -140,10 +140,10 @@ func Evaluate(expr representation.Expr) (any, error) {
 			return left.(float64) <= right.(float64), nil
 
 		case scanner.BANG_EQUAL:
-			return left.(float64) != right.(float64), nil
+			return left != right, nil
 
 		case scanner.EQUAL_EQUAL:
-			return left.(float64) == right.(float64), nil
+			return left == right, nil
 
 		default:
 			return nil, fmt.Errorf("it's not supposed to go there, error in func Evaluate in Binary case - unknown operator")

@@ -2,6 +2,7 @@ package evaluation
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kolaowalska/loxxy/src/representation"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
@@ -17,19 +18,70 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
-// TODO: implement methods
-
 func (i *Interpreter) Interpret(statements []representation.Stmt) error {
-	// TODO
+	for _, statement := range statements {
+		err := i.Execute(statement)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func (i *Interpreter) Execute(stmt representation.Stmt) error {
-	// TODO
+	switch s := stmt.(type) {
+	case *representation.Print:
+		value, err := i.Evaluate(s.Expression)
+		if err != nil {
+			return err
+		}
+		fmt.Println(stringify(value))
+		return nil
+
+	case *representation.Expression:
+		_, err := i.Evaluate(s.Expression)
+		return err
+
+	case *representation.Var:
+		var value any = nil
+		var err error
+		if s.Initializer != nil {
+			value, err = i.Evaluate(s.Initializer)
+			if err != nil {
+				return err
+			}
+		}
+		i.environment.Define(s.Name.Lexeme, value)
+		return nil
+
+	case *representation.Block:
+		return i.executeBlock(s.Statements, NewEnvironment(i.environment))
+
+	}
+	return fmt.Errorf("unknown statement type: %T", stmt)
+}
+
+func (i *Interpreter) executeBlock(statements []representation.Stmt, environment *Environment) error {
+	previous := i.environment
+
+	// try { ... } finally { ... }
+	defer func() {
+		i.environment = previous
+	}()
+
+	i.environment = environment
+
+	for _, statement := range statements {
+		err := i.Execute(statement)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func Evaluate(expr representation.Expr) (any, error) {
+func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 	switch e := expr.(type) {
 
 	case *representation.Literal:
@@ -174,3 +226,18 @@ func isTruthy(obj any) bool {
 //	}
 //	return a == b
 //}
+
+func stringify(val any) string {
+	if val == nil {
+		return "nil"
+	}
+
+	if num, ok := val.(float64); ok {
+		text := fmt.Sprintf("%v", num)
+		if strings.HasSuffix(text, ".0") {
+			return text[0 : len(text)-1] // -2?
+		}
+		return text
+	}
+	return fmt.Sprintf("%v", val)
+}

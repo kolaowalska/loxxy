@@ -21,8 +21,6 @@ func (m *MockReporter) Error(line int, message string) {
 	m.LastMessage = message
 }
 
-//TODO: revise tests after full implementation
-
 func TestParser_ValidExpressions(t *testing.T) {
 	tests := []struct {
 		name     string

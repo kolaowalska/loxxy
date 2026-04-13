@@ -65,7 +65,7 @@ func Evaluate(expr representation.Expr) (any, error) {
 				return nil, err
 			}
 			if right.(float64) == 0 { //TODO: test if needed
-				return nil, NewRuntimeError(e.Operator, "Cannot divide by zero.")
+				return nil, newRuntimeError(e.Operator, "Cannot divide by zero.")
 			}
 			return left.(float64) / right.(float64), nil
 
@@ -87,7 +87,7 @@ func Evaluate(expr representation.Expr) (any, error) {
 					return l + r, nil
 				}
 			}
-			return nil, NewRuntimeError(e.Operator, "Operands must be two numbers or two strings.")
+			return nil, newRuntimeError(e.Operator, "Operands must be two numbers or two strings.")
 
 		case scanner.GREATER:
 			err := checkNumberOperands(e.Operator, left, right)

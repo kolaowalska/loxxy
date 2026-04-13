@@ -18,6 +18,8 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
+// TODO: should return RuntimeError
+
 func (i *Interpreter) Interpret(statements []representation.Stmt) error {
 	for _, statement := range statements {
 		err := i.Execute(statement)

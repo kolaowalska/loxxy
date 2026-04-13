@@ -94,6 +94,7 @@ func runPrompt(in io.Reader, out io.Writer) {
 		}
 		run(line)
 		hadError = false
+		hadRuntimeError = false
 	}
 }
 

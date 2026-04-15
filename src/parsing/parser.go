@@ -38,10 +38,7 @@ func NewParser(tokens []scanner.Token, reporter ErrorReporter) *Parser {
 func (p *Parser) Parse() ([]representation.Stmt, error) {
 	var statements []representation.Stmt
 
-	for {
-		if p.isAtEnd() {
-			break
-		}
+	for !p.isAtEnd() {
 		dec, err := p.declaration()
 		if err != nil {
 			return statements, err
@@ -156,10 +153,7 @@ func (p *Parser) expressionStatement() (representation.Stmt, error) {
 func (p *Parser) block() ([]representation.Stmt, error) {
 	var statements []representation.Stmt
 
-	for {
-		if p.check(scanner.RIGHT_BRACE) || p.isAtEnd() {
-			break
-		}
+	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
 		dec, err := p.declaration()
 		if err != nil {
 			return statements, err

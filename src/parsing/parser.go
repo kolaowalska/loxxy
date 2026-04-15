@@ -7,6 +7,15 @@ import (
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
+const (
+	msgSemicolon         = "expect ';' after variable declaration"
+	msgExpression        = "expect expression"
+	msgVariableName      = "expect variable name"
+	msgRightParen        = "expect ')' after expression"
+	msgInvalidAssignment = "invalid assignment target"
+	msgRightCurlyParen   = "expect '}' after block."
+)
+
 type ErrorReporter interface {
 	Error(line int, message string)
 	TokenError(t scanner.Token, message string)
@@ -28,40 +37,133 @@ func NewParser(tokens []scanner.Token, reporter ErrorReporter) *Parser {
 
 // TODO -------------------------------------------------------
 
-func (p *Parser) Parse() representation.Expr {
-	expr, err := p.expression()
-	if err != nil {
-		return nil
+func (p *Parser) Parse() ([]representation.Stmt, error) {
+	var statements []representation.Stmt
+
+	for {
+		if p.isAtEnd() {
+			break
+		}
+		dec, err := p.declaration()
+		if err != nil {
+			return statements, err
+		}
+		statements = append(statements, dec)
 	}
-	return expr
+	return statements, nil
 }
 
 func (p *Parser) expression() (representation.Expr, error) {
-	return p.equality()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() (representation.Expr, error) {
+	expr, err := p.equality()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(scanner.EQUAL) {
+		equals := p.previous()
+		// NOTE: should it be reccursive?
+		value, err := p.assignment()
+		if err != nil {
+			return nil, err
+		}
+
+		if v, ok := expr.(*representation.Variable); ok {
+			name := v.Name
+			return &representation.Assign{Name: name, Value: value}, nil
+		}
+
+		p.error(equals, msgInvalidAssignment)
+	}
+	return expr, nil
 }
 
 func (p *Parser) declaration() (representation.Stmt, error) {
-	return nil, nil
+	if p.match(scanner.VAR) {
+		return p.varDeclaration()
+	}
+	stmt, err := p.statement()
+	if err != nil {
+		p.synchronize()
+		// NOTE: we do not return err (like in a book). change it if necessary
+		return nil, nil
+	}
+	return stmt, nil
 }
 
 func (p *Parser) varDeclaration() (representation.Stmt, error) {
-	return nil, nil
+	name, err := p.consume(scanner.IDENTIFIER, msgVariableName)
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer representation.Expr
+	if p.match(scanner.EQUAL) {
+		initializer, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(scanner.SEMICOLON, msgSemicolon)
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Var{Name: name, Initializer: initializer}, nil
 }
 
 func (p *Parser) statement() (representation.Stmt, error) {
-	return nil, nil
+	if p.match(scanner.PRINT) {
+		return p.printStatement()
+	}
+	if p.match(scanner.LEFT_BRACE) {
+		block, err := p.block()
+		if err != nil {
+			return nil, err
+		}
+		return &representation.Block{Statements: block}, nil
+	}
+	return p.expressionStatement()
 }
 
 func (p *Parser) printStatement() (representation.Stmt, error) {
-	return nil, nil
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	p.consume(scanner.SEMICOLON, msgSemicolon)
+	return &representation.Print{Expression: value}, nil
 }
 
 func (p *Parser) expressionStatement() (representation.Stmt, error) {
-	return nil, nil
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	p.consume(scanner.SEMICOLON, msgSemicolon)
+	return &representation.Expression{Expression: expr}, nil
 }
 
 func (p *Parser) block() ([]representation.Stmt, error) {
-	return nil, nil
+	var statements []representation.Stmt
+
+	for {
+		if p.check(scanner.RIGHT_BRACE) || p.isAtEnd() {
+			break
+		}
+		dec, err := p.declaration()
+		if err != nil {
+			return statements, err
+		}
+		statements = append(statements, dec)
+	}
+	p.consume(scanner.RIGHT_BRACE, msgRightCurlyParen)
+	return statements, nil
 }
 
 // ------------------------------------------------------------
@@ -122,12 +224,10 @@ func (p *Parser) equality() (representation.Expr, error) {
 
 	for p.match(scanner.BANG_EQUAL, scanner.EQUAL_EQUAL) {
 		operator := p.previous()
-
 		right, err := p.comparison()
 		if err != nil {
 			return nil, err
 		}
-
 		expr = &representation.Binary{
 			Left:     expr,
 			Operator: operator,
@@ -150,14 +250,12 @@ func (p *Parser) comparison() (representation.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		expr = &representation.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
 		}
 	}
-
 	return expr, nil
 }
 
@@ -180,7 +278,6 @@ func (p *Parser) term() (representation.Expr, error) {
 			Right:    right,
 		}
 	}
-
 	return expr, nil
 }
 
@@ -203,7 +300,6 @@ func (p *Parser) factor() (representation.Expr, error) {
 			Right:    right,
 		}
 	}
-
 	return expr, nil
 }
 
@@ -215,13 +311,11 @@ func (p *Parser) unary() (representation.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		return &representation.Unary{
 			Operator: operator,
 			Right:    right,
 		}, nil
 	}
-
 	return p.primary()
 }
 
@@ -240,7 +334,7 @@ func (p *Parser) primary() (representation.Expr, error) {
 		return &representation.Literal{Value: p.previous().Literal}, nil
 	}
 	if p.match(scanner.IDENTIFIER) {
-		return &representation.Variable{p.previous()}, nil
+		return &representation.Variable{Name: p.previous()}, nil
 	}
 	if p.match(scanner.LEFT_PAREN) {
 		expr, err := p.expression()
@@ -248,7 +342,7 @@ func (p *Parser) primary() (representation.Expr, error) {
 			return nil, err
 		}
 
-		_, err = p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")
+		_, err = p.consume(scanner.RIGHT_PAREN, msgRightParen)
 		if err != nil {
 			return nil, err
 		}
@@ -256,31 +350,22 @@ func (p *Parser) primary() (representation.Expr, error) {
 		return &representation.Grouping{Expression: expr}, nil
 	}
 
-	return nil, p.error(p.peek(), "Expect expression.")
+	return nil, p.error(p.peek(), msgExpression)
 }
 
-// FIX: UNCOMMENT IF NEEDED
+func (p *Parser) synchronize() {
+	p.advance()
 
-// func (p *Parser) synchronize() {
-// 	p.advance()
-//
-// 	for !p.isAtEnd() {
-// 		if p.previous().TokenType == scanner.SEMICOLON {
-// 			return
-// 		}
-//
-// 		switch p.peek().TokenType {
-// 		case scanner.CLASS:
-// 		case scanner.FUN:
-// 		case scanner.VAR:
-// 		case scanner.FOR:
-// 		case scanner.IF:
-// 		case scanner.WHILE:
-// 		case scanner.PRINT:
-// 		case scanner.RETURN:
-// 			return
-// 		}
-// 	}
-//
-// 	p.advance()
-// }
+	for !p.isAtEnd() {
+		if p.previous().TokenType == scanner.SEMICOLON {
+			return
+		}
+
+		switch p.peek().TokenType {
+		case scanner.CLASS, scanner.FUN, scanner.VAR, scanner.FOR,
+			scanner.IF, scanner.WHILE, scanner.PRINT, scanner.RETURN:
+			return
+		}
+		p.advance()
+	}
+}

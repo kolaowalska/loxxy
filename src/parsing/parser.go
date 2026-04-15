@@ -35,8 +35,6 @@ func NewParser(tokens []scanner.Token, reporter ErrorReporter) *Parser {
 	}
 }
 
-// TODO -------------------------------------------------------
-
 func (p *Parser) Parse() ([]representation.Stmt, error) {
 	var statements []representation.Stmt
 
@@ -77,7 +75,7 @@ func (p *Parser) assignment() (representation.Expr, error) {
 			return &representation.Assign{Name: name, Value: value}, nil
 		}
 
-		p.error(equals, msgInvalidAssignment)
+		_ = p.error(equals, msgInvalidAssignment)
 	}
 	return expr, nil
 }
@@ -136,7 +134,10 @@ func (p *Parser) printStatement() (representation.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.consume(scanner.SEMICOLON, msgSemicolon)
+	_, err = p.consume(scanner.SEMICOLON, msgSemicolon)
+	if err != nil {
+		return nil, err
+	}
 	return &representation.Print{Expression: value}, nil
 }
 
@@ -145,7 +146,10 @@ func (p *Parser) expressionStatement() (representation.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.consume(scanner.SEMICOLON, msgSemicolon)
+	_, err = p.consume(scanner.SEMICOLON, msgSemicolon)
+	if err != nil {
+		return nil, err
+	}
 	return &representation.Expression{Expression: expr}, nil
 }
 
@@ -162,7 +166,10 @@ func (p *Parser) block() ([]representation.Stmt, error) {
 		}
 		statements = append(statements, dec)
 	}
-	p.consume(scanner.RIGHT_BRACE, msgRightCurlyParen)
+	_, err := p.consume(scanner.RIGHT_BRACE, msgRightCurlyParen)
+	if err != nil {
+		return nil, err
+	}
 	return statements, nil
 }
 
@@ -365,6 +372,8 @@ func (p *Parser) synchronize() {
 		case scanner.CLASS, scanner.FUN, scanner.VAR, scanner.FOR,
 			scanner.IF, scanner.WHILE, scanner.PRINT, scanner.RETURN:
 			return
+		default:
+			_ = fmt.Errorf("it's not supposed to go there, error in func synchronize")
 		}
 		p.advance()
 	}

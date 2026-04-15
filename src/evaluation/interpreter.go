@@ -2,6 +2,8 @@ package evaluation
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/kolaowalska/loxxy/src/representation"
@@ -10,11 +12,14 @@ import (
 
 type Interpreter struct {
 	environment *Environment
+	Stdout      io.Writer
+	LastValue   any
 }
 
 func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		environment: NewEnvironment(nil),
+		Stdout:      os.Stdout,
 	}
 }
 
@@ -37,11 +42,14 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(stringify(value))
+		//fmt.Println(stringify(value))
+		i.LastValue = value
+		_, _ = fmt.Fprintln(i.Stdout, stringify(value))
 		return nil
 
 	case *representation.Expression:
-		_, err := i.Evaluate(s.Expression)
+		value, err := i.Evaluate(s.Expression)
+		i.LastValue = value
 		return err
 
 	case *representation.Var:

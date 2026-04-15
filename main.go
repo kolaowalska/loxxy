@@ -105,7 +105,7 @@ func run(source string) {
 	tokens := s.ScanTokens()
 
 	p := parser.NewParser(tokens, reporter)
-	statements := p.Parse()
+	statements, _ := p.Parse()
 
 	if hadError {
 		return

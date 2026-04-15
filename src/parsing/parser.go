@@ -116,6 +116,9 @@ func (p *Parser) statement() (representation.Stmt, error) {
 	if p.match(scanner.PRINT) {
 		return p.printStatement()
 	}
+	if p.match(scanner.FOR) {
+		return p.forStatement()
+	}
 	if p.match(scanner.LEFT_BRACE) {
 		block, err := p.block()
 		if err != nil {
@@ -167,7 +170,28 @@ func (p *Parser) block() ([]representation.Stmt, error) {
 	return statements, nil
 }
 
-// ------------------------------------------------------------
+// control flow ----------------------------------------------
+
+func (p *Parser) forStatement() (representation.Stmt, error) {
+	_, err := p.consume(scanner.LEFT_BRACE, "expect '(' after 'for'")
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO
+
+	//if p.match(scanner.SEMICOLON) {
+	//
+	//} else if p.match(scanner.VAR) {
+	//
+	//} else {
+	//
+	//}
+
+	return nil, nil
+}
+
+// -----------------------------------------------------------
 
 func (p *Parser) match(types ...scanner.TokenType) bool {
 	for _, t := range types {

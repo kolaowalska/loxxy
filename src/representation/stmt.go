@@ -6,8 +6,6 @@ type Stmt interface {
 	stmtNode()
 }
 
-// TODO: implement methods
-
 type Expression struct {
 	Expression Expr
 }

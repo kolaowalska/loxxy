@@ -11,7 +11,7 @@ func (r *RuntimeError) Error() string {
 	return r.Message
 }
 
-func NewRuntimeError(operator scanner.Token, message string) *RuntimeError {
+func newRuntimeError(operator scanner.Token, message string) *RuntimeError {
 	return &RuntimeError{Token: operator, Message: message}
 }
 
@@ -19,7 +19,7 @@ func checkNumberOperand(operator scanner.Token, operand any) error {
 	if _, ok := operand.(float64); ok {
 		return nil
 	}
-	return NewRuntimeError(operator, "operand must be a number.")
+	return newRuntimeError(operator, "operand must be a number.")
 }
 
 func checkNumberOperands(operator scanner.Token, left any, right any) error {
@@ -28,5 +28,5 @@ func checkNumberOperands(operator scanner.Token, left any, right any) error {
 	if leftIsNumber && rightIsNumber {
 		return nil
 	}
-	return NewRuntimeError(operator, "operands must be numbers.")
+	return newRuntimeError(operator, "operands must be numbers.")
 }

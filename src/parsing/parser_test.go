@@ -80,7 +80,7 @@ func TestParser_ValidExpressions(t *testing.T) {
 			}
 
 			p := NewParser(tokens, mock)
-			expr := p.Parse()
+			expr, _ := p.expression()
 
 			if mock.HadError {
 				t.Fatalf("parser reported an unexpected error: %s", mock.LastMessage)
@@ -89,7 +89,7 @@ func TestParser_ValidExpressions(t *testing.T) {
 				t.Fatalf("parser returned nil expression: %q", tt.source)
 			}
 
-			result := representation.Print(expr)
+			result := representation.PrintAST(expr)
 			if result != tt.expected {
 				t.Errorf("expected AST %q, got %q", tt.expected, result)
 			}
@@ -103,13 +103,13 @@ func TestParser_SyntaxErrors(t *testing.T) {
 		source        string
 		expectedError string
 	}{
-		{"missing expression after operator", "1 + ", "Expect expression."},
-		{"starting with binary operator", "* 5", "Expect expression."},
-		{"missing right parenthesis", "(1 + 2", "Expect ')' after expression."},
-		{"only unary operator", "-", "Expect expression."},
-		{"empty parenthesis", "()", "Expect expression."},
-		{"error in nested grouping", "(1 + (2 * ))", "Expect expression."},
-		{"missing left operand for equality", "== true", "Expect expression."},
+		{"missing expression after operator", "1 + ", "expect expression"},
+		{"starting with binary operator", "* 5", "expect expression"},
+		{"missing right parenthesis", "(1 + 2", "expect ')' after expression"},
+		{"only unary operator", "-", "expect expression"},
+		{"empty parenthesis", "()", "expect expression"},
+		{"error in nested grouping", "(1 + (2 * ))", "expect expression"},
+		{"missing left operand for equality", "== true", "expect expression"},
 	}
 
 	for _, tt := range tests {
@@ -120,7 +120,7 @@ func TestParser_SyntaxErrors(t *testing.T) {
 			tokens := s.ScanTokens()
 
 			p := NewParser(tokens, mock)
-			p.Parse()
+			_, _ = p.expression()
 
 			if !mock.HadError {
 				t.Errorf("expected parser to report an error for %q, but it didn't ", tt.source)

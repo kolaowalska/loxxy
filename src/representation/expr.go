@@ -35,3 +35,16 @@ type Unary struct {
 }
 
 func (u *Unary) exprNode() {}
+
+type Variable struct {
+	Name scanner.Token
+}
+
+func (v *Variable) exprNode() {}
+
+type Assign struct {
+	Name  scanner.Token
+	Value Expr
+}
+
+func (a *Assign) exprNode() {}

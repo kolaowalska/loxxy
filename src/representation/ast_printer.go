@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func Print(expr Expr) string {
+func PrintAST(expr Expr) string {
 	switch e := expr.(type) {
 
 	case *Binary:
@@ -34,7 +34,7 @@ func parenthesize(name string, exprs ...Expr) string {
 	builder.WriteString("(" + name)
 	for _, expr := range exprs {
 		builder.WriteString(" ")
-		builder.WriteString(Print(expr))
+		builder.WriteString(PrintAST(expr))
 	}
 	builder.WriteString(")")
 

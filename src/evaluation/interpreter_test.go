@@ -61,7 +61,8 @@ func TestEvaluate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := evaluation.Evaluate(tt.expr)
+			i := evaluation.NewInterpreter()
+			result, err := i.Evaluate(tt.expr)
 
 			if tt.expectedError {
 				if err == nil {

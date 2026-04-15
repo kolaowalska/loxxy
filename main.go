@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
@@ -16,6 +15,8 @@ import (
 
 var hadError = false
 var hadRuntimeError = false
+
+var interpreter = evaluation.NewInterpreter()
 
 // LoxReporter - Concrete implementation of scanner.ErrorReporter
 type LoxReporter struct{}
@@ -93,40 +94,30 @@ func runPrompt(in io.Reader, out io.Writer) {
 		}
 		run(line)
 		hadError = false
+		hadRuntimeError = false
 	}
 }
 
 func run(source string) {
 	reporter := LoxReporter{}
 
-	newScanner := scanner.NewScanner(source, reporter)
-	tokens := newScanner.ScanTokens()
+	s := scanner.NewScanner(source, reporter)
+	tokens := s.ScanTokens()
 
-	newParser := parser.NewParser(tokens, reporter)
-	expression := newParser.Parse()
+	p := parser.NewParser(tokens, reporter)
+	statements, _ := p.Parse()
 
 	if hadError {
 		return
 	}
-	result, err := evaluation.Evaluate(expression)
+
+	err := interpreter.Interpret(statements)
 	if err != nil {
-		if runtimeErr, ok := err.(*evaluation.RuntimeError); ok {
-			reportRuntimeError(runtimeErr)
+		if rterr, ok := err.(*evaluation.RuntimeError); ok {
+			reportRuntimeError(rterr)
 		} else {
-			log.Printf("Error: %v", err)
+			log.Printf("internal error: %v\n", err)
 		}
-		return
-	}
-	fmt.Println(stringify(result))
-}
-func stringify(obj any) string {
-	if obj == nil {
-		return "nil"
-	}
-	if val, ok := obj.(float64); ok {
-		text := fmt.Sprintf("%v", val)
-		return strings.TrimSuffix(text, ".0")
 	}
 
-	return fmt.Sprintf("%v", obj)
 }

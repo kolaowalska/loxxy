@@ -99,16 +99,58 @@ func TestControlFlow(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:          "for print",
+			name:          "for - print",
 			source:        "for (var a = 1; a < 4; a = a + 1) {print a;}",
 			expected:      "1\n2\n3\n",
 			expectedError: false,
 		},
 		{
-			name:          "for no var",
+			name:          "for - no var",
 			source:        "for (a = 1; a < 4; a = a + 1) {print a;}",
 			expected:      nil,
 			expectedError: true,
+		},
+		{
+			name:          "for - single statement body",
+			source:        "for (var i = 0; i < 3; i = i + 1) print i;",
+			expected:      "0\n1\n2\n",
+			expectedError: false,
+		},
+		{
+			name:          "for - missing initializer",
+			source:        "var i = 0; for (; i < 3; i = i + 1) print i;",
+			expected:      "0\n1\n2\n",
+			expectedError: false,
+		},
+		{
+			name:          "for - missing increment",
+			source:        "for (var i = 0; i < 3;) { print i; i = i + 1; }",
+			expected:      "0\n1\n2\n",
+			expectedError: false,
+		},
+		{
+			name:          "for - missing initializer and increment",
+			source:        "var i = 0; for (; i < 3;) { print i; i = i + 1; }",
+			expected:      "0\n1\n2\n",
+			expectedError: false,
+		},
+		{
+			name:          "for - expression statement initializer",
+			source:        "var a; for (a = 0; a < 3; a = a + 1) print a;",
+			expected:      "0\n1\n2\n",
+			expectedError: false,
+		},
+		{
+			name:          "for - variable scoping",
+			source:        "for (var i = 0; i < 2; i = i + 1) { print i; } print i;",
+			expected:      "",
+			expectedError: true, // should trigger a runtime error
+		},
+		{
+			name:          "for - variable shadowing",
+			source:        "var i = 5; for (var i = 0; i < 2; i = i + 1) { print i; } print i;",
+			expected:      "0\n1\n5\n",
+			expectedError: false,
 		},
 	}
 

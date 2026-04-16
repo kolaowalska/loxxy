@@ -290,10 +290,7 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 	// desugaring
 	if increment != nil {
 		body = &representation.Block{
-			Statements: []representation.Stmt{
-				body,
-				&representation.Expression{Expression: increment},
-			},
+			Statements: []representation.Stmt{body, &representation.Expression{Expression: increment}},
 		}
 	}
 

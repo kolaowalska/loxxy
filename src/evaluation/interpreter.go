@@ -37,12 +37,29 @@ func (i *Interpreter) Interpret(statements []representation.Stmt) error {
 
 func (i *Interpreter) Execute(stmt representation.Stmt) error {
 	switch s := stmt.(type) {
+	case *representation.If:
+		condition, err := i.Evaluate(s.Condition)
+		if err != nil {
+			return err
+		}
+		if isTruthy(condition) {
+			err := i.Execute(s.ThenBranch)
+			if err != nil {
+				return err
+			}
+		} else if s.ElseBranch != nil {
+			err := i.Execute(s.ElseBranch)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+
 	case *representation.Print:
 		value, err := i.Evaluate(s.Expression)
 		if err != nil {
 			return err
 		}
-		//fmt.Println(stringify(value))
 		i.LastValue = value
 		_, _ = fmt.Fprintln(i.Stdout, stringify(value))
 		return nil
@@ -113,6 +130,24 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 			return nil, err
 		}
 		return value, nil
+
+	case *representation.Logical:
+		left, err := i.Evaluate(e.Left)
+		if err != nil {
+			return nil, err
+		}
+
+		if e.Operator.TokenType == scanner.OR {
+			if isTruthy(left) {
+				return left, nil
+			}
+		} else {
+			if !isTruthy(left) {
+				return left, nil
+			}
+		}
+
+		return i.Evaluate(e.Right)
 
 	case *representation.Unary:
 		right, err := i.Evaluate(e.Right)

@@ -48,3 +48,11 @@ type Assign struct {
 }
 
 func (a *Assign) exprNode() {}
+
+type Logical struct {
+	Left     Expr
+	Operator scanner.Token
+	Right    Expr
+}
+
+func (l *Logical) exprNode() {}

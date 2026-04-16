@@ -30,3 +30,11 @@ type Block struct {
 }
 
 func (b *Block) stmtNode() {}
+
+type If struct {
+	Condition  Expr
+	ThenBranch Stmt
+	ElseBranch Stmt
+}
+
+func (i *If) stmtNode() {}

@@ -53,15 +53,13 @@ func (p *Parser) expression() (representation.Expr, error) {
 }
 
 func (p *Parser) assignment() (representation.Expr, error) {
-	expr, err := p.equality()
-
+	expr, err := p.or()
 	if err != nil {
 		return nil, err
 	}
 
 	if p.match(scanner.EQUAL) {
 		equals := p.previous()
-		// NOTE: should it be reccursive?
 		value, err := p.assignment()
 		if err != nil {
 			return nil, err
@@ -73,6 +71,40 @@ func (p *Parser) assignment() (representation.Expr, error) {
 		}
 
 		_ = p.error(equals, msgInvalidAssignment)
+	}
+	return expr, nil
+}
+
+func (p *Parser) or() (representation.Expr, error) {
+	expr, err := p.and()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(scanner.OR) {
+		operator := p.previous()
+		right, err := p.and()
+		if err != nil {
+			return nil, err
+		}
+		expr = &representation.Logical{Left: expr, Operator: operator, Right: right}
+	}
+	return expr, nil
+}
+
+func (p *Parser) and() (representation.Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(scanner.AND) {
+		operator := p.previous()
+		right, err := p.equality()
+		if err != nil {
+			return nil, err
+		}
+		expr = &representation.Logical{Left: expr, Operator: operator, Right: right}
 	}
 	return expr, nil
 }
@@ -113,6 +145,9 @@ func (p *Parser) varDeclaration() (representation.Stmt, error) {
 }
 
 func (p *Parser) statement() (representation.Stmt, error) {
+	if p.match(scanner.IF) {
+		return p.ifStatement()
+	}
 	if p.match(scanner.PRINT) {
 		return p.printStatement()
 	}
@@ -127,6 +162,36 @@ func (p *Parser) statement() (representation.Stmt, error) {
 		return &representation.Block{Statements: block}, nil
 	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) ifStatement() (representation.Stmt, error) {
+	_, err := p.consume(scanner.LEFT_PAREN, "expect '(' after 'if'")
+	if err != nil {
+		return nil, err
+	}
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(scanner.RIGHT_PAREN, "expect ')' after if condition")
+	if err != nil {
+		return nil, err
+	}
+
+	thenBranch, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	var elseBranch representation.Stmt
+	if p.match(scanner.ELSE) {
+		elseBranch, err = p.statement()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &representation.If{Condition: condition, ThenBranch: thenBranch, ElseBranch: elseBranch}, nil
 }
 
 func (p *Parser) printStatement() (representation.Stmt, error) {

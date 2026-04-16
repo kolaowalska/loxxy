@@ -178,17 +178,70 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 		return nil, err
 	}
 
-	// TODO
+	var initializer representation.Stmt
+	if p.match(scanner.SEMICOLON) {
+		initializer = nil
+	} else if p.match(scanner.VAR) {
+		initializer, err = p.varDeclaration()
+	} else {
+		initializer, err = p.expressionStatement()
+	}
+	if err != nil {
+		return nil, err
+	}
 
-	//if p.match(scanner.SEMICOLON) {
-	//
-	//} else if p.match(scanner.VAR) {
-	//
-	//} else {
-	//
-	//}
+	var condition representation.Expr = nil
+	if !p.check(scanner.SEMICOLON) {
+		condition, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = p.consume(scanner.SEMICOLON, "expect ';' after loop condition")
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	var increment representation.Expr = nil
+	if !p.check(scanner.RIGHT_PAREN) {
+		increment, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = p.consume(scanner.RIGHT_PAREN, "expect ')' after for clauses")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	// desugaring
+	if increment != nil {
+		body = &representation.Block{
+			Statements: []representation.Stmt{
+				body,
+				&representation.Expression{Expression: increment},
+			},
+		}
+	}
+
+	if condition == nil {
+		condition = &representation.Literal{Value: true}
+	}
+
+	body = &representation.While{Condition: condition, Body: body}
+
+	if initializer != nil {
+		body = &representation.Block{
+			Statements: []representation.Stmt{initializer, body},
+		}
+	}
+
+	return body, nil
 }
 
 // -----------------------------------------------------------

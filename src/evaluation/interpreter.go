@@ -86,12 +86,15 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 
 	case *representation.While:
 		for {
-			cond, err := i.Evaluate(s.Expression)
+			cond, err := i.Evaluate(s.Condition)
 			if err != nil {
 				return err
 			}
 			if isTruthy(cond) {
-				i.Execute(s.Statement)
+				err := i.Execute(s.Body)
+				if err != nil {
+					return err
+				}
 			} else {
 				return nil
 			}

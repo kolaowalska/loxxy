@@ -40,8 +40,8 @@ type If struct {
 func (i *If) stmtNode() {}
 
 type While struct {
-	Expression Expr
-	Statement  Stmt
+	Condition Expr
+	Body      Stmt
 }
 
 func (w *While) stmtNode() {}

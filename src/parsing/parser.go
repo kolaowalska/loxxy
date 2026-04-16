@@ -117,7 +117,7 @@ func (p *Parser) declaration() (representation.Stmt, error) {
 	if err != nil {
 		p.synchronize()
 		// NOTE: we do not return err (like in a book). change it if necessary
-		return nil, nil
+		return nil, err
 	}
 	return stmt, nil
 }
@@ -241,7 +241,7 @@ func (p *Parser) block() ([]representation.Stmt, error) {
 // control flow ----------------------------------------------
 
 func (p *Parser) forStatement() (representation.Stmt, error) {
-	_, err := p.consume(scanner.LEFT_BRACE, "expect '(' after 'for'")
+	_, err := p.consume(scanner.LEFT_PAREN, "expect '(' after 'for'")
 	if err != nil {
 		return nil, err
 	}

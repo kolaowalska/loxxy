@@ -332,7 +332,7 @@ func (p *Parser) whileStatement() (representation.Stmt, error) {
 		return nil, err
 	}
 
-	return &representation.While{Expression: condition, Statement: body}, nil
+	return &representation.While{Condition: condition, Body: body}, nil
 
 }
 

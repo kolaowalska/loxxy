@@ -154,6 +154,9 @@ func (p *Parser) statement() (representation.Stmt, error) {
 	if p.match(scanner.FOR) {
 		return p.forStatement()
 	}
+	if p.match(scanner.WHILE) {
+		return p.whileStatement()
+	}
 	if p.match(scanner.LEFT_BRACE) {
 		block, err := p.block()
 		if err != nil {
@@ -257,6 +260,28 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 }
 
 // -----------------------------------------------------------
+
+func (p *Parser) whileStatement() (representation.Stmt, error) {
+	_, err := p.consume(scanner.LEFT_PAREN, "expect '(' after 'while'")
+	if err != nil {
+		return nil, err
+	}
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(scanner.RIGHT_PAREN, "expect ')' after condition")
+	if err != nil {
+		return nil, err
+	}
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.While{Expression: condition, Statement: body}, nil
+
+}
 
 func (p *Parser) match(types ...scanner.TokenType) bool {
 	for _, t := range types {

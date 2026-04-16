@@ -84,6 +84,18 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 	case *representation.Block:
 		return i.executeBlock(s.Statements, NewEnvironment(i.environment))
 
+	case *representation.While:
+		for {
+			cond, err := i.Evaluate(s.Expression)
+			if err != nil {
+				return err
+			}
+			if isTruthy(cond) {
+				i.Execute(s.Statement)
+			} else {
+				return nil
+			}
+		}
 	}
 	return fmt.Errorf("unknown statement type: %T", stmt)
 }

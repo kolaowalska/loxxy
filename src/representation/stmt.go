@@ -38,3 +38,10 @@ type If struct {
 }
 
 func (i *If) stmtNode() {}
+
+type While struct {
+	Expression Expr
+	Statement  Stmt
+}
+
+func (w *While) stmtNode() {}

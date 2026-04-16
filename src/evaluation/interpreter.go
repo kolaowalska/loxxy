@@ -13,7 +13,6 @@ import (
 type Interpreter struct {
 	environment *Environment
 	Stdout      io.Writer
-	LastValue   any
 }
 
 func NewInterpreter() *Interpreter {
@@ -22,8 +21,6 @@ func NewInterpreter() *Interpreter {
 		Stdout:      os.Stdout,
 	}
 }
-
-// TODO: should return RuntimeError
 
 func (i *Interpreter) Interpret(statements []representation.Stmt) error {
 	for _, statement := range statements {
@@ -60,13 +57,11 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 		if err != nil {
 			return err
 		}
-		i.LastValue = value
 		_, _ = fmt.Fprintln(i.Stdout, stringify(value))
 		return nil
 
 	case *representation.Expression:
-		value, err := i.Evaluate(s.Expression)
-		i.LastValue = value
+		_, err := i.Evaluate(s.Expression)
 		return err
 
 	case *representation.Var:

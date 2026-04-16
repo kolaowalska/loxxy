@@ -21,13 +21,13 @@ func TestPipeline(t *testing.T) {
 		expected      any
 		expectedError bool
 	}{
-		{"Simple math", "1 + 2 * 3;", 7.0, false},
-		{"Grouping", "(1 + 2) * 3;", 9.0, false},
-		{"String concat", "\"ala\" + \"kot\";", "alakot", false},
-		{"Comparison and booleans", "10 >= 5 == true;", true, false},
-		{"Equality mixed", "\"ala\" == 123;", false, false},
-		{"Complex test 1", "(-1 + 5) * 2 / 4;", 2.0, false},
-		{"Complex test 2", "(5 - (3 - 1)) + -1;", 2.0, false},
+		{"Simple math", "print 1 + 2 * 3;", "7\n", false},
+		{"Grouping", "print (1 + 2) * 3;", "9\n", false},
+		{"String concat", "print \"ala\" + \"kot\";", "alakot\n", false},
+		{"Comparison and booleans", "print 10 >= 5 == true;", "true\n", false},
+		{"Equality mixed", "print \"ala\" == 123;", "false\n", false},
+		{"Complex test 1", "print (-1 + 5) * 2 / 4;", "2\n", false},
+		{"Complex test 2", "print (5 - (3 - 1)) + -1;", "2\n", false},
 
 		{"Subtract string from number", "\"ala\" - 123;", nil, true},
 		{"Unary minus on string", "-\"ala\";", nil, true},
@@ -64,8 +64,8 @@ func TestPipeline(t *testing.T) {
 				if err != nil {
 					t.Errorf("Unexpected error for [%s]: %v", test.source, err)
 				}
-				if i.LastValue != test.expected {
-					t.Errorf("For [%s]: expected %v, got %v", test.source, test.expected, i.LastValue)
+				if out.String() != test.expected {
+					t.Errorf("For [%s]: expected %v, got %v", test.source, test.expected, out.String())
 				}
 			}
 		})

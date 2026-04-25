@@ -58,7 +58,7 @@ func TestResolvingAndBinding(t *testing.T) {
 			// ja nie wiem czy to jest dobrze?
 			interpreter := i.Interpret(statements)
 			resolver := evaluation.NewResolver(interpreter)
-			err := resolver.ResolveStatements(statements)
+			err = resolver.ResolveStatements(statements)
 
 			if err != nil {
 				if test.expectedError {

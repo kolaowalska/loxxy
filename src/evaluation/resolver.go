@@ -19,7 +19,6 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 	}
 }
 
-// --- Scope Management ---
 func (r *Resolver) beginScope() {
 	r.scopes = append(r.scopes, make(map[string]bool))
 }
@@ -79,7 +78,48 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		r.define(s.Name)
 		return nil
 
-		// PERSON 2
+	case *representation.Function:
+		err := r.declare(s.Name)
+		if err != nil {
+			return err
+		}
+		r.define(s.Name)
+		return r.resolveFunction(s)
+
+	case *representation.Expression:
+		return r.resolveExpr(s.Expression)
+
+	case *representation.If:
+		err := r.resolveExpr(s.Condition)
+		if err != nil {
+			return err
+		}
+		err = r.resolveStmt(s.ThenBranch)
+
+		if err != nil {
+			return err
+		}
+		if s.ElseBranch != nil {
+			return r.resolveStmt(s.ElseBranch)
+		}
+		return nil
+
+	case *representation.Print:
+		return r.resolveExpr(s.Expression)
+
+	case *representation.Return:
+		if s.Value != nil {
+			return r.resolveExpr(s.Value)
+		}
+		return nil
+
+	case *representation.While:
+		err := r.resolveExpr(s.Condition)
+		if err != nil {
+			return err
+		}
+		return r.resolveStmt(s.Body)
+
 	}
 	return nil
 }
@@ -104,7 +144,42 @@ func (r *Resolver) resolveExpr(expr representation.Expr) error {
 		r.resolveLocal(e, e.Name)
 		return nil
 
-		// PERSON 2
+	case *representation.Binary:
+		err := r.resolveExpr(e.Left)
+		if err != nil {
+			return err
+		}
+		return r.resolveExpr(e.Right)
+
+	case *representation.Call:
+		err := r.resolveExpr(e.Callee)
+		if err != nil {
+			return err
+		}
+		for _, arg := range e.Args {
+			err := r.resolveExpr(arg)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+
+	case *representation.Grouping:
+		return r.resolveExpr(e.Expression)
+
+	case *representation.Literal:
+		return nil
+
+	case *representation.Logical:
+		err := r.resolveExpr(e.Left)
+		if err != nil {
+			return err
+		}
+		return r.resolveExpr(e.Right)
+
+	case *representation.Unary:
+		return r.resolveExpr(e.Right)
+
 	}
 	return nil
 }
@@ -116,4 +191,18 @@ func (r *Resolver) resolveLocal(expr representation.Expr, name scanner.Token) {
 			return
 		}
 	}
+}
+
+func (r *Resolver) resolveFunction(function *representation.Function) error {
+	r.beginScope()
+	for _, param := range function.Params {
+		err := r.declare(param)
+		if err != nil {
+			return err
+		}
+		r.define(param)
+	}
+	err := r.ResolveStatements(function.Body)
+	r.endScope()
+	return err
 }

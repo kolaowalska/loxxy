@@ -20,7 +20,7 @@ func NewInterpreter() *Interpreter {
 	globals := NewEnvironment(nil)
 	globals.Define("clock", &NativeClock{})
 	return &Interpreter{
-		environment: NewEnvironment(nil),
+		environment: globals,
 		Stdout:      os.Stdout,
 		globals:     globals,
 	}

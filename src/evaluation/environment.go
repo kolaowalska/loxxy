@@ -35,3 +35,20 @@ func (e *Environment) Assign(name scanner.Token, value any) error {
 	}
 	return newRuntimeError(name, "undefined variable '"+name.Lexeme+"'.")
 }
+
+func (e *Environment) ancestor(distance int) *Environment {
+	environment := e
+	for i := 0; i < distance; i++ {
+		environment = environment.enclosing
+	}
+	return environment
+}
+
+func (e *Environment) GetAt(distance int, name string) (any, error) {
+	return e.ancestor(distance).values[name], nil
+}
+
+func (e *Environment) AssignAt(distance int, name scanner.Token, value any) error {
+	e.ancestor(distance).values[name.Lexeme] = value
+	return nil
+}

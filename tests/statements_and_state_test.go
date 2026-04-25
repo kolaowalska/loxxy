@@ -68,6 +68,16 @@ func TestStatementAndState(t *testing.T) {
 			interpreter := evaluation.NewInterpreter()
 			interpreter.Stdout = &out
 
+			resolver := evaluation.NewResolver(interpreter)
+			err = resolver.ResolveStatements(statements)
+
+			if err != nil {
+				if tt.expectedErr {
+					return
+				}
+				t.Fatalf("Resolver returned an error for source: %s\nError: %v", tt.source, err)
+			}
+
 			err = interpreter.Interpret(statements)
 
 			if err != nil {

@@ -54,6 +54,16 @@ func TestPipeline(t *testing.T) {
 			i := evaluation.NewInterpreter()
 			i.Stdout = &out
 
+			resolver := evaluation.NewResolver(i)
+			err = resolver.ResolveStatements(statements)
+
+			if err != nil {
+				if test.expectedError {
+					return
+				}
+				t.Fatalf("Resolver returned an error for source: %s\nError: %v", test.source, err)
+			}
+
 			err = i.Interpret(statements)
 
 			if test.expectedError {

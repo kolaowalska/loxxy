@@ -481,7 +481,53 @@ func (p *Parser) unary() (representation.Expr, error) {
 			Right:    right,
 		}, nil
 	}
-	return p.primary()
+	return p.call()
+}
+
+func (p *Parser) call() (representation.Expr, error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if p.match(scanner.LEFT_PAREN) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			break
+		}
+	}
+	return expr, nil
+}
+
+func (p *Parser) finishCall(callee representation.Expr) (representation.Expr, error) {
+	var arguments []representation.Expr
+
+	if !p.check(scanner.RIGHT_PAREN) {
+		for {
+			if len(arguments) >= 255 {
+				_ = p.error(p.peek(), "can't have more than 255 arguments.")
+			}
+			arg, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+			arguments = append(arguments, arg)
+			if !p.match(scanner.COMMA) {
+				break
+			}
+		}
+	}
+
+	paren, err := p.consume(scanner.RIGHT_PAREN, "expect ')' after arguments.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Call{Callee: callee, Paren: paren, Args: arguments}, nil
 }
 
 // primary: NUMBER | STRING | "true" | "false" | "nil" | "(" expr ")" | IDENTIFIER

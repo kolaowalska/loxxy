@@ -13,12 +13,16 @@ import (
 type Interpreter struct {
 	environment *Environment
 	Stdout      io.Writer
+	globals     *Environment
 }
 
 func NewInterpreter() *Interpreter {
+	globals := NewEnvironment(nil)
+	globals.Define("clock", &NativeClock{})
 	return &Interpreter{
 		environment: NewEnvironment(nil),
 		Stdout:      os.Stdout,
+		globals:     globals,
 	}
 }
 
@@ -269,6 +273,31 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 		default:
 			return nil, fmt.Errorf("it's not supposed to go there, error in func Evaluate in Binary case - unknown operator")
 		}
+
+	case *representation.Call:
+		callee, err := i.Evaluate(e.Callee)
+		if err != nil {
+			return nil, err
+		}
+
+		var arguments []any
+		for _, argExpr := range e.Args {
+			arg, err := i.Evaluate(argExpr)
+			if err != nil {
+				return nil, err
+			}
+			arguments = append(arguments, arg)
+		}
+
+		function, ok := callee.(LoxCallable)
+		if !ok {
+			return nil, newRuntimeError(e.Paren, "can only call functions and classes.")
+		}
+		if len(arguments) != function.Arity() {
+			return nil, newRuntimeError(e.Paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)))
+		}
+
+		return function.Call(i, arguments)
 	}
 
 	return nil, fmt.Errorf("unknown expression type")

@@ -8,10 +8,14 @@ import (
 
 type LoxFunction struct {
 	declaration *representation.Function
+	closure     *Environment
 }
 
-func NewLoxFunction(declaration *representation.Function) *LoxFunction {
-	return &LoxFunction{declaration: declaration}
+func NewLoxFunction(declaration *representation.Function, closure *Environment) *LoxFunction {
+	return &LoxFunction{
+		declaration: declaration,
+		closure:     closure,
+	}
 }
 
 func (f *LoxFunction) Arity() int {
@@ -19,7 +23,7 @@ func (f *LoxFunction) Arity() int {
 }
 
 func (f *LoxFunction) Call(i *Interpreter, arguments []any) (any, error) {
-	environment := NewEnvironment(i.globals)
+	environment := NewEnvironment(f.closure)
 
 	for j, param := range f.declaration.Params {
 		environment.Define(param.Lexeme, arguments[j])

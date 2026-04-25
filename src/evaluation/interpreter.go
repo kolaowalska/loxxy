@@ -110,7 +110,7 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 			}
 		}
 	case *representation.Function:
-		function := NewLoxFunction(s)
+		function := NewLoxFunction(s, i.environment)
 		i.environment.Define(s.Name.Lexeme, function)
 		return nil
 	}

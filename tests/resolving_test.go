@@ -96,8 +96,42 @@ func TestResolvingAndBinding(t *testing.T) {
 			expected:      "global\nouter\ninner\n",
 			expectedError: false,
 		},
+		{
+			name: "RESOLVER - deeply nested shadowing resolves correctly",
+			source: `
+				var a = "global";
+				{
+					var a = "outer";
+					{
+						var a = "inner";
+						print a;
+					}
+					print a;
+				}
+				print a;
+			`,
+			expected:      "inner\nouter\nglobal\n",
+			expectedError: false,
+		},
+		{
+			name: "RESOLVER - assignment respects lexical scope",
+			source: `
+				var a = "global";
+				{
+					fun assign() {
+						a = "assigned";
+					}
+					var a = "inner";
+					assign();
+					print a;
+				}
+				print a;
+			`,
+			expected:      "inner\nassigned\n",
+			expectedError: false,
+		},
 	}
-
+	
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			reporter := TestReporter{}

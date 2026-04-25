@@ -79,6 +79,17 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 	case *representation.Block:
 		return i.executeBlock(s.Statements, NewEnvironment(i.environment))
 
+	case *representation.Return:
+		var value any = nil
+		var err error
+		if s.Value != nil {
+			value, err = i.Evaluate(s.Value)
+			if err != nil {
+				return err
+			}
+		}
+		return &ReturnValue{Value: value}
+
 	case *representation.While:
 		for {
 			cond, err := i.Evaluate(s.Condition)
@@ -95,6 +106,7 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 			}
 		}
 	}
+
 	return fmt.Errorf("unknown statement type: %T", stmt)
 }
 

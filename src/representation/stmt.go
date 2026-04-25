@@ -45,3 +45,10 @@ type While struct {
 }
 
 func (w *While) stmtNode() {}
+
+type Return struct {
+	Keyword scanner.Token
+	Value   Expr
+}
+
+func (r *Return) stmtNode() {}

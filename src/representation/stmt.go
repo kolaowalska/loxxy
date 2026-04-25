@@ -46,6 +46,14 @@ type While struct {
 
 func (w *While) stmtNode() {}
 
+type Function struct {
+	Name   scanner.Token
+	Params []scanner.Token
+	Body   []Stmt
+}
+
+func (f *Function) stmtNode() {}
+
 type Return struct {
 	Keyword scanner.Token
 	Value   Expr

@@ -164,6 +164,9 @@ func (p *Parser) statement() (representation.Stmt, error) {
 		}
 		return &representation.Block{Statements: block}, nil
 	}
+	if p.match(scanner.RETURN) {
+		return p.returnStatement()
+	}
 	return p.expressionStatement()
 }
 

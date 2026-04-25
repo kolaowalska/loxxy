@@ -1,6 +1,10 @@
 package evaluation
 
-import "github.com/kolaowalska/loxxy/src/representation"
+import (
+	"errors"
+
+	"github.com/kolaowalska/loxxy/src/representation"
+)
 
 type LoxFunction struct {
 	declaration *representation.Function
@@ -23,7 +27,10 @@ func (f *LoxFunction) Call(i *Interpreter, arguments []any) (any, error) {
 
 	err := i.executeBlock(f.declaration.Body, environment)
 	if err != nil {
-		// NOTE: add Return Error here
+		// TODO: double-check cursed type error
+		if ret, ok := errors.AsType[*ReturnValue](err); ok {
+			return ret.Value, nil
+		}
 		return nil, err
 	}
 	return nil, nil

@@ -33,6 +33,38 @@ func TestResolvingAndBinding(t *testing.T) {
 			expected:      "global\nglobal\n",
 			expectedError: false,
 		},
+		{
+			name: "RESOLVER - error when reading local variable in its own initializer",
+			source: `
+				var a = "outer";
+				{
+					var a = a; 
+				}
+			`,
+			expected:      "",
+			expectedError: true,
+		},
+		{
+			name: "RESOLVER - error on duplicate local variables in the same scope",
+			source: `
+				fun bad() {
+					var a = "first";
+					var a = "second"; 
+				}
+			`,
+			expected:      "",
+			expectedError: true,
+		},
+		{
+			name: "RESOLVER - allowed duplicate global variables",
+			source: `
+				var a = "first";
+				var a = "second"; 
+				print a;
+			`,
+			expected:      "second\n",
+			expectedError: false,
+		},
 	}
 
 	for _, test := range tests {

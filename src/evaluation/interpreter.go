@@ -109,6 +109,10 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 				return nil
 			}
 		}
+	case *representation.Function:
+		function := NewLoxFunction(s)
+		i.environment.Define(s.Name.Lexeme, function)
+		return nil
 	}
 
 	return fmt.Errorf("unknown statement type: %T", stmt)

@@ -110,6 +110,9 @@ func (p *Parser) and() (representation.Expr, error) {
 }
 
 func (p *Parser) declaration() (representation.Stmt, error) {
+	if p.match(scanner.FUN) {
+		return p.function("function")
+	}
 	if p.match(scanner.VAR) {
 		return p.varDeclaration()
 	}
@@ -599,9 +602,56 @@ func (p *Parser) returnStatement() (representation.Stmt, error) {
 	}
 
 	_, err = p.consume(scanner.SEMICOLON, "expect ';' after return value")
+
+	if err != nil {
+		return nil, err
+	}
+	return &representation.Return{Keyword: keyword, Value: value}, nil
+}
+
+// functions
+func (p *Parser) function(kind string) (representation.Stmt, error) {
+	name, err := p.consume(scanner.IDENTIFIER, "expect "+kind+" name")
 	if err != nil {
 		return nil, err
 	}
 
-	return &representation.Return{Keyword: keyword, Value: value}, nil
+	_, err = p.consume(scanner.LEFT_PAREN, "expect '(' after "+kind+" name")
+	if err != nil {
+		return nil, err
+	}
+
+	var parameters []scanner.Token
+	if !p.check(scanner.RIGHT_PAREN) {
+		for {
+			if len(parameters) >= 255 {
+				_ = p.error(p.peek(), "can't have more than 255 parameters")
+			}
+			param, err := p.consume(scanner.IDENTIFIER, "expect parameter name")
+			if err != nil {
+				return nil, err
+			}
+			parameters = append(parameters, param)
+
+			if !p.match(scanner.COMMA) {
+				break
+			}
+		}
+	}
+	_, err = p.consume(scanner.RIGHT_PAREN, "expect ')' after parameters")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(scanner.LEFT_BRACE, "expect '{' before "+kind+" body")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.block()
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Function{Name: name, Params: parameters, Body: body}, nil
 }

@@ -33,6 +33,69 @@ func TestResolvingAndBinding(t *testing.T) {
 			expected:      "global\nglobal\n",
 			expectedError: false,
 		},
+		{
+			name: "RESOLVER ERROR - cannot read local variable in its own initializer",
+			source: `
+				var a = "outer";
+				{
+					var a = a; 
+				}
+			`,
+			expected:      "",
+			expectedError: true, // should trigger: "can't read local variable in its own initializer"
+		},
+		{
+			name: "RESOLVER ERROR - cannot declare two variables with the same name in the same local scope",
+			source: `
+				{
+					var a = "first";
+					var a = "second";
+				}
+			`,
+			expected:      "",
+			expectedError: true, // should trigger: "already a variable with this name in this scope"
+		},
+		{
+			name: "RESOLVER - global variable redeclaration is allowed",
+			source: `
+				var a = "first";
+				var a = "second";
+				print a;
+			`,
+			expected:      "second\n",
+			expectedError: false, // lox allows redefining globals, so the resolver should not error here!
+		},
+		{
+			name: "RESOLVER - assignment resolves to the correct shadowed scope",
+			source: `
+				var a = "global";
+				{
+					var a = "local";
+					a = "modified local";
+					print a;
+				}
+				print a;
+			`,
+			expected:      "modified local\nglobal\n",
+			expectedError: false,
+		},
+		{
+			name: "RESOLVER - deeply nested variable resolution",
+			source: `
+				var a = "global";
+				{
+					var b = "outer";
+					{
+						var c = "inner";
+						print a;
+						print b;
+						print c;
+					}
+				}
+			`,
+			expected:      "global\nouter\ninner\n",
+			expectedError: false,
+		},
 	}
 
 	for _, test := range tests {

@@ -13,7 +13,7 @@ const (
 	msgVariableName      = "expect variable name"
 	msgRightParen        = "expect ')' after expression"
 	msgInvalidAssignment = "invalid assignment target"
-	msgRightCurlyParen   = "expect '}' after block."
+	msgRightCurlyParen   = "expect '}' after block"
 )
 
 type ErrorReporter interface {
@@ -163,6 +163,9 @@ func (p *Parser) statement() (representation.Stmt, error) {
 			return nil, err
 		}
 		return &representation.Block{Statements: block}, nil
+	}
+	if p.match(scanner.RETURN) {
+		return p.returnStatement()
 	}
 	return p.expressionStatement()
 }
@@ -581,4 +584,24 @@ func (p *Parser) synchronize() {
 		}
 		p.advance()
 	}
+}
+
+func (p *Parser) returnStatement() (representation.Stmt, error) {
+	keyword := p.previous()
+	var value representation.Expr = nil
+	var err error
+
+	if !p.check(scanner.SEMICOLON) {
+		value, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(scanner.SEMICOLON, "expect ';' after return value")
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Return{Keyword: keyword, Value: value}, nil
 }

@@ -14,6 +14,7 @@ type Interpreter struct {
 	environment *Environment
 	Stdout      io.Writer
 	globals     *Environment
+	locals      map[representation.Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -23,6 +24,7 @@ func NewInterpreter() *Interpreter {
 		environment: globals,
 		Stdout:      os.Stdout,
 		globals:     globals,
+		locals:      make(map[representation.Expr]int),
 	}
 }
 
@@ -118,6 +120,10 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 	return fmt.Errorf("unknown statement type: %T", stmt)
 }
 
+func (i *Interpreter) Resolve(expr representation.Expr, depth int) {
+	i.locals[expr] = depth
+}
+
 func (i *Interpreter) executeBlock(statements []representation.Stmt, environment *Environment) error {
 	previous := i.environment
 
@@ -148,14 +154,20 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 		return i.Evaluate(e.Expression)
 
 	case *representation.Variable:
-		return i.environment.Get(e.Name)
+		return i.lookupVariable(e.Name, e)
 
 	case *representation.Assign:
 		value, err := i.Evaluate(e.Value)
 		if err != nil {
 			return nil, err
 		}
-		err = i.environment.Assign(e.Name, value)
+
+		distance, ok := i.locals[e]
+		if ok {
+			err = i.environment.AssignAt(distance, e.Name, value)
+		} else {
+			err = i.globals.Assign(e.Name, value)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -354,4 +366,13 @@ func stringify(val any) string {
 		return text
 	}
 	return fmt.Sprintf("%v", val)
+}
+
+func (i *Interpreter) lookupVariable(name scanner.Token, expr representation.Expr) (any, error) {
+	distance, ok := i.locals[expr]
+	if ok {
+		return i.environment.GetAt(distance, name.Lexeme)
+	} else {
+		return i.globals.Get(name)
+	}
 }

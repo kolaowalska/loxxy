@@ -56,3 +56,11 @@ type Logical struct {
 }
 
 func (l *Logical) exprNode() {}
+
+type Call struct {
+	Callee Expr
+	Paren  scanner.Token
+	Args   []Expr
+}
+
+func (c *Call) exprNode() {}

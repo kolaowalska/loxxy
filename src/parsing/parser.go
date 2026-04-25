@@ -13,7 +13,7 @@ const (
 	msgVariableName      = "expect variable name"
 	msgRightParen        = "expect ')' after expression"
 	msgInvalidAssignment = "invalid assignment target"
-	msgRightCurlyParen   = "expect '}' after block."
+	msgRightCurlyParen   = "expect '}' after block"
 )
 
 type ErrorReporter interface {
@@ -110,6 +110,9 @@ func (p *Parser) and() (representation.Expr, error) {
 }
 
 func (p *Parser) declaration() (representation.Stmt, error) {
+	if p.match(scanner.FUN) {
+		return p.function("function")
+	}
 	if p.match(scanner.VAR) {
 		return p.varDeclaration()
 	}
@@ -163,6 +166,9 @@ func (p *Parser) statement() (representation.Stmt, error) {
 			return nil, err
 		}
 		return &representation.Block{Statements: block}, nil
+	}
+	if p.match(scanner.RETURN) {
+		return p.returnStatement()
 	}
 	return p.expressionStatement()
 }
@@ -481,7 +487,53 @@ func (p *Parser) unary() (representation.Expr, error) {
 			Right:    right,
 		}, nil
 	}
-	return p.primary()
+	return p.call()
+}
+
+func (p *Parser) call() (representation.Expr, error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if p.match(scanner.LEFT_PAREN) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			break
+		}
+	}
+	return expr, nil
+}
+
+func (p *Parser) finishCall(callee representation.Expr) (representation.Expr, error) {
+	var arguments []representation.Expr
+
+	if !p.check(scanner.RIGHT_PAREN) {
+		for {
+			if len(arguments) >= 255 {
+				_ = p.error(p.peek(), "can't have more than 255 arguments.")
+			}
+			arg, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+			arguments = append(arguments, arg)
+			if !p.match(scanner.COMMA) {
+				break
+			}
+		}
+	}
+
+	paren, err := p.consume(scanner.RIGHT_PAREN, "expect ')' after arguments.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Call{Callee: callee, Paren: paren, Args: arguments}, nil
 }
 
 // primary: NUMBER | STRING | "true" | "false" | "nil" | "(" expr ")" | IDENTIFIER
@@ -535,4 +587,71 @@ func (p *Parser) synchronize() {
 		}
 		p.advance()
 	}
+}
+
+func (p *Parser) returnStatement() (representation.Stmt, error) {
+	keyword := p.previous()
+	var value representation.Expr = nil
+	var err error
+
+	if !p.check(scanner.SEMICOLON) {
+		value, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(scanner.SEMICOLON, "expect ';' after return value")
+
+	if err != nil {
+		return nil, err
+	}
+	return &representation.Return{Keyword: keyword, Value: value}, nil
+}
+
+// functions
+func (p *Parser) function(kind string) (representation.Stmt, error) {
+	name, err := p.consume(scanner.IDENTIFIER, "expect "+kind+" name")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(scanner.LEFT_PAREN, "expect '(' after "+kind+" name")
+	if err != nil {
+		return nil, err
+	}
+
+	var parameters []scanner.Token
+	if !p.check(scanner.RIGHT_PAREN) {
+		for {
+			if len(parameters) >= 255 {
+				_ = p.error(p.peek(), "can't have more than 255 parameters")
+			}
+			param, err := p.consume(scanner.IDENTIFIER, "expect parameter name")
+			if err != nil {
+				return nil, err
+			}
+			parameters = append(parameters, param)
+
+			if !p.match(scanner.COMMA) {
+				break
+			}
+		}
+	}
+	_, err = p.consume(scanner.RIGHT_PAREN, "expect ')' after parameters")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(scanner.LEFT_BRACE, "expect '{' before "+kind+" body")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.block()
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Function{Name: name, Params: parameters, Body: body}, nil
 }

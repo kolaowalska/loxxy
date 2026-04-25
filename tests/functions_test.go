@@ -103,6 +103,17 @@ func TestFunctions(t *testing.T) {
 			var out bytes.Buffer
 			i := evaluation.NewInterpreter() // i := evaluation.NewInterpreter(&out)
 			i.Stdout = &out
+
+			resolver := evaluation.NewResolver(i)
+			err = resolver.ResolveStatements(statements)
+
+			if err != nil {
+				if test.expectedError {
+					return
+				}
+				t.Fatalf("Resolver returned an error for source: %s\nError: %v", test.source, err)
+			}
+
 			err = i.Interpret(statements)
 
 			if err != nil {

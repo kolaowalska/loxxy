@@ -111,9 +111,23 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 				return nil
 			}
 		}
+
 	case *representation.Function:
-		function := NewLoxFunction(s, i.environment)
+		function := NewLoxFunction(s, i.environment, false)
 		i.environment.Define(s.Name.Lexeme, function)
+		return nil
+	case *representation.Class:
+		i.environment.Define(s.Name.Lexeme, nil)
+		methods := make(map[string]*LoxFunction)
+		for _, method := range s.Methods {
+			function := NewLoxFunction(method, i.environment, method.Name.Lexeme == "init")
+			methods[method.Name.Lexeme] = function
+		}
+		class := &LoxClass{Name: s.Name.Lexeme, Methods: methods}
+		err := i.environment.Assign(s.Name, class)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -326,6 +340,35 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 		}
 
 		return function.Call(i, arguments)
+
+	case *representation.This:
+		return i.lookupVariable(e.Keyword, e)
+
+	case *representation.Get:
+		object, err := i.Evaluate(e.Object)
+		if err != nil {
+			return nil, err
+		}
+		if instance, ok := object.(*LoxInstance); ok {
+			return instance.Get(e.Name)
+		}
+		return nil, newRuntimeError(e.Name, "only instances have properties.")
+
+	case *representation.Set:
+		object, err := i.Evaluate(e.Object)
+		if err != nil {
+			return nil, err
+		}
+		if instance, ok := object.(*LoxInstance); ok {
+			value, err := i.Evaluate(e.Value)
+			if err != nil {
+				return nil, err
+			}
+			instance.Set(e.Name, value)
+			return value, nil
+		}
+		return nil, newRuntimeError(e.Name, "only instances have fields.")
+
 	}
 
 	return nil, fmt.Errorf("unknown expression type")

@@ -60,3 +60,10 @@ type Return struct {
 }
 
 func (r *Return) stmtNode() {}
+
+type Class struct {
+	Name    scanner.Token
+	Methods []*Function
+}
+
+func (c *Class) stmtNode() {}

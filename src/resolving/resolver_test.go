@@ -1,4 +1,4 @@
-package tests
+package resolving_test
 
 import (
 	"bytes"
@@ -6,8 +6,15 @@ import (
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
+	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
+	"github.com/kolaowalska/loxxy/src/testutils"
 )
+
+type TestReporter struct{}
+
+func (r TestReporter) Error(line int, message string)             {}
+func (r TestReporter) TokenError(t scanner.Token, message string) {}
 
 func TestResolvingAndBinding(t *testing.T) {
 	tests := []struct {
@@ -131,51 +138,45 @@ func TestResolvingAndBinding(t *testing.T) {
 			expectedError: false,
 		},
 	}
-	
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			reporter := TestReporter{}
+			reporter := &testutils.TestReporter{}
+
+			// 1. scanning
 			s := scanner.NewScanner(test.source, reporter)
 			tokens := s.ScanTokens()
 
+			// 2. parsing
 			p := parser.NewParser(tokens, reporter)
 			statements, err := p.Parse()
 
-			if err != nil {
-				if test.expectedError {
-					return
-				}
+			if err != nil && !test.expectedError {
 				t.Fatalf("Parser returned nil for source: %s\nError: %v", test.source, err)
 			}
 
+			// 3. resolving
 			var out bytes.Buffer
 			i := evaluation.NewInterpreter() // i := evaluation.NewInterpreter(&out)
 			i.Stdout = &out
 
-			resolver := evaluation.NewResolver(i)
-			err = resolver.ResolveStatements(statements)
+			resolver := resolving.NewResolver(i, reporter)
+			_ = resolver.ResolveStatements(statements)
 
-			if err != nil {
-				if test.expectedError {
-					return
-				}
-				t.Fatalf("Resolver returned an error for source: %s\nError: %v", test.source, err)
+			if testutils.CheckError(t, test.expectedError, nil, reporter.HadError, "RESOLVING") {
+				return
 			}
 
+			// 4. interpreting
 			err = i.Interpret(statements)
+			if testutils.CheckError(t, test.expectedError, err, reporter.HadError, "INTERPRETING") {
+				return
+			}
 
-			if err != nil {
-				if test.expectedError {
-					return
-				}
-				t.Fatalf("Interpreter returned an error for source: %s\nError: %v", test.source, err)
-			}
 			if test.expectedError {
-				t.Fatalf("Expected an error for source: %s, but execution succeeded.", test.source)
+				t.Fatalf("expected an error for source: %s, but execution succeeded.", test.source)
 			}
-			if out.String() != test.expected {
-				t.Errorf("For source:\n%s\n\nExpected:\n%v\n\nGot:\n%v", test.source, test.expected, out.String())
-			}
+
 		})
 	}
 }

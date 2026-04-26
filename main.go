@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
+	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
@@ -111,19 +113,16 @@ func run(source string) {
 		return
 	}
 
-	resolver := evaluation.NewResolver(interpreter)
-	err := resolver.ResolveStatements(statements)
-	if err != nil {
-		log.Printf("resolution error: %v\n", err)
+	resolver := resolving.NewResolver(interpreter, reporter)
+	_ = resolver.ResolveStatements(statements)
+	if hadError {
 		return
 	}
 
-	err = interpreter.Interpret(statements)
+	err := interpreter.Interpret(statements)
 	if err != nil {
-		if rterr, ok := err.(*evaluation.RuntimeError); ok {
+		if rterr, ok := errors.AsType[*evaluation.RuntimeError](err); ok {
 			reportRuntimeError(rterr)
-		} else {
-			log.Printf("internal error: %v\n", err)
 		}
 	}
 

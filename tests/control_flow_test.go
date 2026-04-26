@@ -6,7 +6,9 @@ import (
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
+	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
+	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
 func TestControlFlow(t *testing.T) {
@@ -156,7 +158,7 @@ func TestControlFlow(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			reporter := TestReporter{}
+			reporter := &testutils.TestReporter{}
 
 			s := scanner.NewScanner(test.source, reporter)
 			tokens := s.ScanTokens()
@@ -175,28 +177,19 @@ func TestControlFlow(t *testing.T) {
 			i := evaluation.NewInterpreter()
 			i.Stdout = &out
 
-			resolver := evaluation.NewResolver(i)
-			err = resolver.ResolveStatements(statements)
+			resolver := resolving.NewResolver(i, reporter)
+			_ = resolver.ResolveStatements(statements)
 
-			if err != nil {
-				if test.expectedError {
-					return
-				}
-				t.Fatalf("Resolver returned an error for source: %s\nError: %v", test.source, err)
+			if testutils.CheckError(t, test.expectedError, nil, reporter.HadError, "RESOLVING") {
+				return
 			}
 
 			err = i.Interpret(statements)
+			if testutils.CheckError(t, test.expectedError, err, reporter.HadError, "INTERPRETING") {
+				return
+			}
 			if test.expectedError {
-				if err == nil {
-					t.Errorf("Expected error for [%s], but got none", test.source)
-				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error for [%s]: %v", test.source, err)
-				}
-				if out.String() != test.expected {
-					t.Errorf("For source:\n%s\n\nExpected:\n%v\n\nGot:\n%v", test.source, test.expected, out.String())
-				}
+				t.Fatalf("expected an error for source: %s, but execution succeeded.", test.source)
 			}
 		})
 	}

@@ -66,10 +66,10 @@ func (p *Parser) assignment() (representation.Expr, error) {
 		}
 
 		if v, ok := expr.(*representation.Variable); ok {
-			name := v.Name
-			return &representation.Assign{Name: name, Value: value}, nil
+			return &representation.Assign{Name: v.Name, Value: value}, nil
+		} else if g, ok := expr.(*representation.Get); ok {
+			return &representation.Set{Object: g.Object, Name: g.Name, Value: value}, nil
 		}
-
 		_ = p.error(equals, msgInvalidAssignment)
 	}
 	return expr, nil
@@ -110,6 +110,9 @@ func (p *Parser) and() (representation.Expr, error) {
 }
 
 func (p *Parser) declaration() (representation.Stmt, error) {
+	if p.match(scanner.CLASS) {
+		return p.classDeclaration()
+	}
 	if p.match(scanner.FUN) {
 		return p.function("function")
 	}
@@ -119,7 +122,6 @@ func (p *Parser) declaration() (representation.Stmt, error) {
 	stmt, err := p.statement()
 	if err != nil {
 		p.synchronize()
-		// NOTE: we do not return err (like in a book). change it if necessary
 		return nil, err
 	}
 	return stmt, nil
@@ -244,8 +246,6 @@ func (p *Parser) block() ([]representation.Stmt, error) {
 	return statements, nil
 }
 
-// control flow ----------------------------------------------
-
 func (p *Parser) forStatement() (representation.Stmt, error) {
 	_, err := p.consume(scanner.LEFT_PAREN, "expect '(' after 'for'")
 	if err != nil {
@@ -314,8 +314,6 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 
 	return body, nil
 }
-
-// -----------------------------------------------------------
 
 func (p *Parser) whileStatement() (representation.Stmt, error) {
 	_, err := p.consume(scanner.LEFT_PAREN, "expect '(' after 'while'")
@@ -502,6 +500,12 @@ func (p *Parser) call() (representation.Expr, error) {
 			if err != nil {
 				return nil, err
 			}
+		} else if p.match(scanner.DOT) {
+			name, err := p.consume(scanner.IDENTIFIER, "expect property name after'.'")
+			if err != nil {
+				return nil, err
+			}
+			expr = &representation.Get{Object: expr, Name: name}
 		} else {
 			break
 		}
@@ -515,7 +519,7 @@ func (p *Parser) finishCall(callee representation.Expr) (representation.Expr, er
 	if !p.check(scanner.RIGHT_PAREN) {
 		for {
 			if len(arguments) >= 255 {
-				_ = p.error(p.peek(), "can't have more than 255 arguments.")
+				_ = p.error(p.peek(), "can't have more than 255 arguments")
 			}
 			arg, err := p.expression()
 			if err != nil {
@@ -528,7 +532,7 @@ func (p *Parser) finishCall(callee representation.Expr) (representation.Expr, er
 		}
 	}
 
-	paren, err := p.consume(scanner.RIGHT_PAREN, "expect ')' after arguments.")
+	paren, err := p.consume(scanner.RIGHT_PAREN, "expect ')' after arguments")
 	if err != nil {
 		return nil, err
 	}
@@ -549,6 +553,9 @@ func (p *Parser) primary() (representation.Expr, error) {
 	}
 	if p.match(scanner.NUMBER, scanner.STRING) {
 		return &representation.Literal{Value: p.previous().Literal}, nil
+	}
+	if p.match(scanner.THIS) {
+		return &representation.This{Keyword: p.previous()}, nil
 	}
 	if p.match(scanner.IDENTIFIER) {
 		return &representation.Variable{Name: p.previous()}, nil
@@ -583,7 +590,7 @@ func (p *Parser) synchronize() {
 			scanner.IF, scanner.WHILE, scanner.PRINT, scanner.RETURN:
 			return
 		default:
-			_ = fmt.Errorf("it's not supposed to go there, error in func synchronize")
+			_ = fmt.Errorf("it's not supposed to go there, error in synchronize() function")
 		}
 		p.advance()
 	}
@@ -654,4 +661,33 @@ func (p *Parser) function(kind string) (representation.Stmt, error) {
 	}
 
 	return &representation.Function{Name: name, Params: parameters, Body: body}, nil
+}
+
+// classes
+func (p *Parser) classDeclaration() (representation.Stmt, error) {
+	name, err := p.consume(scanner.IDENTIFIER, "expect class name")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(scanner.LEFT_BRACE, "expect '{' before class body")
+	if err != nil {
+		return nil, err
+	}
+
+	var methods []*representation.Function
+	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
+		method, err := p.function("method")
+		if err != nil {
+			return nil, err
+		}
+		methods = append(methods, method.(*representation.Function))
+	}
+
+	_, err = p.consume(scanner.RIGHT_BRACE, "expect '}' after class body")
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Class{Name: name, Methods: methods}, nil
 }

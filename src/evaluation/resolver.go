@@ -15,14 +15,16 @@ const (
 )
 
 type Resolver struct {
-	interpreter *Interpreter
-	scopes      []map[string]bool
+	interpreter  *Interpreter
+	scopes       []map[string]bool
+	currentClass ClassType
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
 	return &Resolver{
-		interpreter: interpreter,
-		scopes:      make([]map[string]bool, 0),
+		interpreter:  interpreter,
+		scopes:       make([]map[string]bool, 0),
+		currentClass: ClassTypeNone,
 	}
 }
 
@@ -128,8 +130,28 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		return r.resolveStmt(s.Body)
 
 	case *representation.Class:
-		r.declare(s.Name)
+		err := r.declare(s.Name)
+		if err != nil {
+			return err
+		}
 		r.define(s.Name)
+
+		enclosingClass := r.currentClass
+		r.currentClass = ClassTypeClass
+
+		r.beginScope()
+		r.scopes[len(r.scopes)-1]["this"] = true
+
+		for _, method := range s.Methods {
+			err := r.resolveFunction(method)
+			if err != nil {
+				return err
+			}
+		}
+
+		r.endScope()
+		r.currentClass = enclosingClass
+
 		return nil
 	}
 	return nil

@@ -113,7 +113,7 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 		}
 
 	case *representation.Function:
-		function := NewLoxFunction(s, i.environment)
+		function := NewLoxFunction(s, i.environment, false)
 		i.environment.Define(s.Name.Lexeme, function)
 		return nil
 	case *representation.Class:
@@ -124,7 +124,10 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 			methods[method.Name.Lexeme] = function
 		}
 		class := &LoxClass{Name: s.Name.Lexeme, Methods: methods}
-		i.environment.Assign(s.Name, class)
+		err := i.environment.Assign(s.Name, class)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -365,6 +368,7 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 			return value, nil
 		}
 		return nil, newRuntimeError(e.Name, "only instances have fields.")
+
 	}
 
 	return nil, fmt.Errorf("unknown expression type")

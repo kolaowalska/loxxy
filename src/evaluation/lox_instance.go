@@ -22,6 +22,9 @@ func (i *LoxInstance) Get(name scanner.Token) (any, error) {
 	if val, ok := i.Fields[name.Lexeme]; ok {
 		return val, nil
 	}
+	if method := i.Class.FindMethod(name.Lexeme); method != nil {
+		return method.Bind(i), nil
+	}
 	return nil, newRuntimeError(name, "undefined property '"+name.Lexeme+"'.")
 }
 

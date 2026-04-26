@@ -1,8 +1,9 @@
-package evaluation
+package resolving
 
 import (
 	"fmt"
 
+	"github.com/kolaowalska/loxxy/src/evaluation"
 	"github.com/kolaowalska/loxxy/src/representation"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
@@ -15,12 +16,12 @@ const (
 )
 
 type Resolver struct {
-	interpreter  *Interpreter
+	interpreter  *evaluation.Interpreter
 	scopes       []map[string]bool
 	currentClass ClassType
 }
 
-func NewResolver(interpreter *Interpreter) *Resolver {
+func NewResolver(interpreter *evaluation.Interpreter) *Resolver {
 	return &Resolver{
 		interpreter:  interpreter,
 		scopes:       make([]map[string]bool, 0),

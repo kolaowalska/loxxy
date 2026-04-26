@@ -120,7 +120,7 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 		i.environment.Define(s.Name.Lexeme, nil)
 		methods := make(map[string]*LoxFunction)
 		for _, method := range s.Methods {
-			function := NewLoxFunction(method, i.environment, false)
+			function := NewLoxFunction(method, i.environment, method.Name.Lexeme == "init")
 			methods[method.Name.Lexeme] = function
 		}
 		class := &LoxClass{Name: s.Name.Lexeme, Methods: methods}

@@ -64,3 +64,18 @@ type Call struct {
 }
 
 func (c *Call) exprNode() {}
+
+type Get struct {
+	Object Expr
+	Name   scanner.Token
+}
+
+func (g *Get) exprNode() {}
+
+type Set struct {
+	Object Expr
+	Name   scanner.Token
+	Value  Expr
+}
+
+func (s *Set) exprNode() {}

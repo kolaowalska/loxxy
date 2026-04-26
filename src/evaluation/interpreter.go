@@ -328,6 +328,27 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 		return function.Call(i, arguments)
 	}
 
+	case *representation.Get:
+		object, err := i.Evaluate(e.Object)
+		if err != nil { return nil, err }
+		if instance, ok := object.(*LoxInstance); ok {
+			return instance.Get(e.Name)
+		}
+		return nil, newRuntimeError(e.Name, "only instances have properties.")
+
+	case *representation.Set:
+		object, err := i.Evaluate(e.Object)
+		if err != nil { return nil, err }
+		if instance, ok := object.(*LoxInstance); ok {
+			value, err := i.Evaluate(e.Value)
+			if err != nil { return nil, err }
+			instance.Set(e.Name, value)
+			return value, nil
+		}
+		return nil, newRuntimeError(e.Name, "only instances have fields.")
+
+
+
 	return nil, fmt.Errorf("unknown expression type")
 }
 

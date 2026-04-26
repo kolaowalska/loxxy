@@ -115,6 +115,16 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 		function := NewLoxFunction(s, i.environment)
 		i.environment.Define(s.Name.Lexeme, function)
 		return nil
+	case *representation.Class:
+		i.environment.Define(s.Name.Lexeme, nil)
+		methods := make(map[string]*LoxFunction)
+		for _, method := range s.Methods {
+			function := NewLoxFunction(method, i.environment, false)
+			methods[method.Name.Lexeme] = function
+		}
+		class := &LoxClass{Name: s.Name.Lexeme, Methods: methods}
+		i.environment.Assign(s.Name, class)
+		return nil
 	}
 
 	return fmt.Errorf("unknown statement type: %T", stmt)

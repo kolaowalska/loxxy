@@ -127,6 +127,10 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		}
 		return r.resolveStmt(s.Body)
 
+	case *representation.Class:
+		r.declare(s.Name)
+		r.define(s.Name)
+		return nil
 	}
 	return nil
 }

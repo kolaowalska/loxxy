@@ -110,6 +110,9 @@ func (p *Parser) and() (representation.Expr, error) {
 }
 
 func (p *Parser) declaration() (representation.Stmt, error) {
+	if p.match(scanner.CLASS) {
+		return p.classDeclaration()
+	}
 	if p.match(scanner.FUN) {
 		return p.function("function")
 	}
@@ -657,4 +660,33 @@ func (p *Parser) function(kind string) (representation.Stmt, error) {
 	}
 
 	return &representation.Function{Name: name, Params: parameters, Body: body}, nil
+}
+
+// classes
+func (p *Parser) classDeclaration() (representation.Stmt, error) {
+	name, err := p.consume(scanner.IDENTIFIER, "expect class name")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(scanner.LEFT_BRACE, "expect '{' before class body")
+	if err != nil {
+		return nil, err
+	}
+
+	var methods []*representation.Function
+	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
+		method, err := p.function("method")
+		if err != nil {
+			return nil, err
+		}
+		methods = append(methods, method.(*representation.Function))
+	}
+
+	_, err = p.consume(scanner.RIGHT_BRACE, "expect '}' after class body")
+	if err != nil {
+		return nil, err
+	}
+
+	return &representation.Class{Name: name, Methods: methods}, nil
 }

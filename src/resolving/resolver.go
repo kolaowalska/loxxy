@@ -1,8 +1,6 @@
 package resolving
 
 import (
-	"fmt"
-
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	"github.com/kolaowalska/loxxy/src/representation"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
@@ -24,19 +22,26 @@ const (
 	FunctionTypeMethod
 )
 
+type ErrorReporter interface {
+	Error(line int, message string)
+	TokenError(t scanner.Token, message string)
+}
+
 type Resolver struct {
 	interpreter     *evaluation.Interpreter
 	scopes          []map[string]bool
 	currentClass    ClassType
 	currentFunction FunctionType
+	reporter        ErrorReporter
 }
 
-func NewResolver(interpreter *evaluation.Interpreter) *Resolver {
+func NewResolver(interpreter *evaluation.Interpreter, reporter ErrorReporter) *Resolver {
 	return &Resolver{
 		interpreter:     interpreter,
 		scopes:          make([]map[string]bool, 0),
 		currentClass:    ClassTypeNone,
 		currentFunction: FunctionTypeNone,
+		reporter:        reporter,
 	}
 }
 
@@ -48,16 +53,15 @@ func (r *Resolver) endScope() {
 	r.scopes = r.scopes[:len(r.scopes)-1]
 }
 
-func (r *Resolver) declare(name scanner.Token) error {
+func (r *Resolver) declare(name scanner.Token) {
 	if len(r.scopes) == 0 {
-		return nil
+		return
 	}
 	scope := r.scopes[len(r.scopes)-1]
 	if _, exists := scope[name.Lexeme]; exists {
-		return fmt.Errorf("already a variable with this name in this scope")
+		r.reporter.TokenError(name, "already a variable with this name in this scope")
 	}
 	scope[name.Lexeme] = false
-	return nil
 }
 
 func (r *Resolver) define(name scanner.Token) {
@@ -86,12 +90,9 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		return err
 
 	case *representation.Var:
-		err := r.declare(s.Name)
-		if err != nil {
-			return err
-		}
+		r.declare(s.Name)
 		if s.Initializer != nil {
-			err = r.resolveExpr(s.Initializer)
+			err := r.resolveExpr(s.Initializer)
 			if err != nil {
 				return err
 			}
@@ -100,10 +101,7 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		return nil
 
 	case *representation.Function:
-		err := r.declare(s.Name)
-		if err != nil {
-			return err
-		}
+		r.declare(s.Name)
 		r.define(s.Name)
 		return r.resolveFunction(s, FunctionTypeFunction)
 
@@ -130,15 +128,14 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 
 	case *representation.Return:
 		if r.currentFunction == FunctionTypeNone {
-			return fmt.Errorf("can't return from top-level code")
+			r.reporter.TokenError(s.Keyword, "can't return from top-level code")
 		}
 		if s.Value != nil {
 			if r.currentFunction == FunctionTypeInitializer {
-				return fmt.Errorf("can't return a value from an initializer")
+				r.reporter.TokenError(s.Keyword, "can't return a value from an initializer")
 			}
 			return r.resolveExpr(s.Value)
 		}
-		return nil
 
 	case *representation.While:
 		err := r.resolveExpr(s.Condition)
@@ -148,10 +145,7 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		return r.resolveStmt(s.Body)
 
 	case *representation.Class:
-		err := r.declare(s.Name)
-		if err != nil {
-			return err
-		}
+		r.declare(s.Name)
 		r.define(s.Name)
 
 		enclosingClass := r.currentClass
@@ -185,11 +179,10 @@ func (r *Resolver) resolveExpr(expr representation.Expr) error {
 		if len(r.scopes) != 0 {
 			scope := r.scopes[len(r.scopes)-1]
 			if ready, exists := scope[e.Name.Lexeme]; exists && !ready {
-				return fmt.Errorf("can't read local variable in its own initializer")
+				r.reporter.TokenError(e.Name, "can't read local variable in its own initializer.")
 			}
 		}
 		r.resolveLocal(e, e.Name)
-		return nil
 
 	case *representation.Assign:
 		err := r.resolveExpr(e.Value)
@@ -247,10 +240,9 @@ func (r *Resolver) resolveExpr(expr representation.Expr) error {
 
 	case *representation.This:
 		if r.currentClass == ClassTypeNone {
-			return fmt.Errorf("can't use 'this' outside of a class")
+			r.reporter.TokenError(e.Keyword, "can't use 'this' outside of a class.")
 		}
 		r.resolveLocal(e, e.Keyword)
-		return nil
 	}
 	return nil
 }
@@ -270,10 +262,7 @@ func (r *Resolver) resolveFunction(function *representation.Function, fType Func
 
 	r.beginScope()
 	for _, param := range function.Params {
-		err := r.declare(param)
-		if err != nil {
-			return err
-		}
+		r.declare(param)
 		r.define(param)
 	}
 	err := r.ResolveStatements(function.Body)

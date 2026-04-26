@@ -113,14 +113,13 @@ func run(source string) {
 		return
 	}
 
-	resolver := resolving.NewResolver(interpreter)
-	err := resolver.ResolveStatements(statements)
-	if err != nil {
-		log.Printf("resolution error: %v\n", err)
+	resolver := resolving.NewResolver(interpreter, reporter)
+	_ = resolver.ResolveStatements(statements)
+	if hadError {
 		return
 	}
 
-	err = interpreter.Interpret(statements)
+	err := interpreter.Interpret(statements)
 	if err != nil {
 		if rterr, ok := errors.AsType[*evaluation.RuntimeError](err); ok {
 			reportRuntimeError(rterr)

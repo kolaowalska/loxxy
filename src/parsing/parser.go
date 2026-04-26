@@ -687,6 +687,9 @@ func (p *Parser) classDeclaration() (representation.Stmt, error) {
 	var superclass *representation.Variable = nil
 	if p.match(scanner.LESS) {
 		_, err = p.consume(scanner.IDENTIFIER, "expect superclass name")
+		if err != nil {
+			return nil, err
+		}
 		superclass = &representation.Variable{Name: p.previous()}
 	}
 

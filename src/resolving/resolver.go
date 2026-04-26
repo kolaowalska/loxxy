@@ -15,17 +15,28 @@ const (
 	ClassTypeClass
 )
 
+type FunctionType int
+
+const (
+	FunctionTypeNone FunctionType = iota
+	FunctionTypeFunction
+	FunctionTypeInitializer
+	FunctionTypeMethod
+)
+
 type Resolver struct {
-	interpreter  *evaluation.Interpreter
-	scopes       []map[string]bool
-	currentClass ClassType
+	interpreter     *evaluation.Interpreter
+	scopes          []map[string]bool
+	currentClass    ClassType
+	currentFunction FunctionType
 }
 
 func NewResolver(interpreter *evaluation.Interpreter) *Resolver {
 	return &Resolver{
-		interpreter:  interpreter,
-		scopes:       make([]map[string]bool, 0),
-		currentClass: ClassTypeNone,
+		interpreter:     interpreter,
+		scopes:          make([]map[string]bool, 0),
+		currentClass:    ClassTypeNone,
+		currentFunction: FunctionTypeNone,
 	}
 }
 
@@ -94,7 +105,7 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 			return err
 		}
 		r.define(s.Name)
-		return r.resolveFunction(s)
+		return r.resolveFunction(s, FunctionTypeFunction)
 
 	case *representation.Expression:
 		return r.resolveExpr(s.Expression)
@@ -118,7 +129,13 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		return r.resolveExpr(s.Expression)
 
 	case *representation.Return:
+		if r.currentFunction == FunctionTypeNone {
+			return fmt.Errorf("can't return from top-level code")
+		}
 		if s.Value != nil {
+			if r.currentFunction == FunctionTypeInitializer {
+				return fmt.Errorf("can't return a value from an initializer")
+			}
 			return r.resolveExpr(s.Value)
 		}
 		return nil
@@ -144,7 +161,11 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		r.scopes[len(r.scopes)-1]["this"] = true
 
 		for _, method := range s.Methods {
-			err := r.resolveFunction(method)
+			declaration := FunctionTypeMethod
+			if method.Name.Lexeme == "init" {
+				declaration = FunctionTypeInitializer
+			}
+			err := r.resolveFunction(method, declaration)
 			if err != nil {
 				return err
 			}
@@ -243,7 +264,10 @@ func (r *Resolver) resolveLocal(expr representation.Expr, name scanner.Token) {
 	}
 }
 
-func (r *Resolver) resolveFunction(function *representation.Function) error {
+func (r *Resolver) resolveFunction(function *representation.Function, fType FunctionType) error {
+	enclosingFunction := r.currentFunction
+	r.currentFunction = fType
+
 	r.beginScope()
 	for _, param := range function.Params {
 		err := r.declare(param)
@@ -254,5 +278,7 @@ func (r *Resolver) resolveFunction(function *representation.Function) error {
 	}
 	err := r.ResolveStatements(function.Body)
 	r.endScope()
+
+	r.currentFunction = enclosingFunction
 	return err
 }

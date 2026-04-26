@@ -6,6 +6,7 @@ import (
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
+	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
@@ -175,7 +176,7 @@ func TestControlFlow(t *testing.T) {
 			i := evaluation.NewInterpreter()
 			i.Stdout = &out
 
-			resolver := evaluation.NewResolver(i)
+			resolver := resolving.NewResolver(i)
 			err = resolver.ResolveStatements(statements)
 
 			if err != nil {

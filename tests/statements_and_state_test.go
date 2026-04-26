@@ -6,6 +6,7 @@ import (
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
+	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
@@ -68,7 +69,7 @@ func TestStatementAndState(t *testing.T) {
 			interpreter := evaluation.NewInterpreter()
 			interpreter.Stdout = &out
 
-			resolver := evaluation.NewResolver(interpreter)
+			resolver := resolving.NewResolver(interpreter)
 			err = resolver.ResolveStatements(statements)
 
 			if err != nil {

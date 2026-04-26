@@ -1,4 +1,4 @@
-package tests
+package resolving_test
 
 import (
 	"bytes"
@@ -6,8 +6,14 @@ import (
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
+	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
+
+type TestReporter struct{}
+
+func (r TestReporter) Error(line int, message string)             {}
+func (r TestReporter) TokenError(t scanner.Token, message string) {}
 
 func TestResolvingAndBinding(t *testing.T) {
 	tests := []struct {
@@ -131,28 +137,29 @@ func TestResolvingAndBinding(t *testing.T) {
 			expectedError: false,
 		},
 	}
-	
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			reporter := TestReporter{}
+
+			// 1. scanning
 			s := scanner.NewScanner(test.source, reporter)
 			tokens := s.ScanTokens()
 
+			// 2. parsing
 			p := parser.NewParser(tokens, reporter)
 			statements, err := p.Parse()
 
-			if err != nil {
-				if test.expectedError {
-					return
-				}
+			if err != nil && !test.expectedError {
 				t.Fatalf("Parser returned nil for source: %s\nError: %v", test.source, err)
 			}
 
+			// 3. resolving
 			var out bytes.Buffer
 			i := evaluation.NewInterpreter() // i := evaluation.NewInterpreter(&out)
 			i.Stdout = &out
 
-			resolver := evaluation.NewResolver(i)
+			resolver := resolving.NewResolver(i)
 			err = resolver.ResolveStatements(statements)
 
 			if err != nil {
@@ -162,8 +169,8 @@ func TestResolvingAndBinding(t *testing.T) {
 				t.Fatalf("Resolver returned an error for source: %s\nError: %v", test.source, err)
 			}
 
+			// 4. interpreting
 			err = i.Interpret(statements)
-
 			if err != nil {
 				if test.expectedError {
 					return

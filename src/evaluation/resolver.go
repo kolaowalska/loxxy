@@ -187,6 +187,16 @@ func (r *Resolver) resolveExpr(expr representation.Expr) error {
 	case *representation.Unary:
 		return r.resolveExpr(e.Right)
 
+	case *representation.Get:
+		return r.resolveExpr(e.Object)
+
+	case *representation.Set:
+		err := r.resolveExpr(e.Value)
+		if err != nil {
+			return err
+		}
+		return r.resolveExpr(e.Object)
+
 	case *representation.This:
 		if r.currentClass == ClassTypeNone {
 			return fmt.Errorf("can't use 'this' outside of a class")

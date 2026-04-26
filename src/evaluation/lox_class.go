@@ -1,8 +1,9 @@
 package evaluation
 
 type LoxClass struct {
-	Name    string
-	Methods map[string]*LoxFunction
+	Name       string
+	Superclass *LoxClass
+	Methods    map[string]*LoxFunction
 }
 
 func (c *LoxClass) String() string {
@@ -30,6 +31,9 @@ func (c *LoxClass) Call(i *Interpreter, arguments []any) (any, error) {
 func (c *LoxClass) FindMethod(name string) *LoxFunction {
 	if method, ok := c.Methods[name]; ok {
 		return method
+	}
+	if c.Superclass != nil {
+		return c.Superclass.Superclass.FindMethod(name)
 	}
 	return nil
 }

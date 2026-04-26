@@ -5,21 +5,22 @@ import (
 
 	"github.com/kolaowalska/loxxy/src/representation"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
+	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
-type MockReporter struct {
-	HadError    bool
-	LastMessage string
-}
-
-func (m *MockReporter) TokenError(t scanner.Token, message string) {
-	m.HadError = true
-	m.LastMessage = message
-}
-func (m *MockReporter) Error(line int, message string) {
-	m.HadError = true
-	m.LastMessage = message
-}
+//type MockReporter struct {
+//	HadError    bool
+//	LastMessage string
+//}
+//
+//func (m *MockReporter) TokenError(t scanner.Token, message string) {
+//	m.HadError = true
+//	m.LastMessage = message
+//}
+//func (m *MockReporter) Error(line int, message string) {
+//	m.HadError = true
+//	m.LastMessage = message
+//}
 
 func TestParser_ValidExpressions(t *testing.T) {
 	tests := []struct {
@@ -70,7 +71,7 @@ func TestParser_ValidExpressions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mock := &MockReporter{}
+			mock := &testutils.TestReporter{}
 
 			s := scanner.NewScanner(tt.source, mock)
 			tokens := s.ScanTokens()
@@ -114,7 +115,7 @@ func TestParser_SyntaxErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mock := &MockReporter{}
+			mock := &testutils.TestReporter{}
 
 			s := scanner.NewScanner(tt.source, mock)
 			tokens := s.ScanTokens()

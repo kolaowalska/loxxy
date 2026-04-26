@@ -8,6 +8,7 @@ import (
 	parser "github.com/kolaowalska/loxxy/src/parsing"
 	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
+	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
 func TestFunctions(t *testing.T) {
@@ -135,7 +136,7 @@ func TestFunctions(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			reporter := TestReporter{}
+			reporter := &testutils.TestReporter{}
 			s := scanner.NewScanner(test.source, reporter)
 			tokens := s.ScanTokens()
 

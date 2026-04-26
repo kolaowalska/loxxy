@@ -8,19 +8,20 @@ import (
 	parser "github.com/kolaowalska/loxxy/src/parsing"
 	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
+	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
-type MockReporter struct {
-	HadError bool
-}
-
-func (r *MockReporter) Error(line int, message string) {
-	r.HadError = true
-}
-
-func (r *MockReporter) TokenError(token scanner.Token, message string) {
-	r.HadError = true
-}
+//type MockReporter struct {
+//	HadError bool
+//}
+//
+//func (r *MockReporter) Error(line int, message string) {
+//	r.HadError = true
+//}
+//
+//func (r *MockReporter) TokenError(token scanner.Token, message string) {
+//	r.HadError = true
+//}
 
 func TestStatementAndState(t *testing.T) {
 	tests := []struct {
@@ -47,7 +48,7 @@ func TestStatementAndState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reporter := &MockReporter{}
+			reporter := &testutils.TestReporter{}
 			var out bytes.Buffer
 
 			s := scanner.NewScanner(tt.source, reporter)

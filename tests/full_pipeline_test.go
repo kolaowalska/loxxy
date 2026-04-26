@@ -8,12 +8,13 @@ import (
 	parser "github.com/kolaowalska/loxxy/src/parsing"
 	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
+	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
-type TestReporter struct{}
-
-func (r TestReporter) Error(line int, message string)                 {}
-func (r TestReporter) TokenError(token scanner.Token, message string) {}
+//type TestReporter struct{}
+//
+//func (r TestReporter) Error(line int, message string)                 {}
+//func (r TestReporter) TokenError(token scanner.Token, message string) {}
 
 func TestPipeline(t *testing.T) {
 	tests := []struct {
@@ -39,7 +40,7 @@ func TestPipeline(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			reporter := TestReporter{}
+			reporter := &testutils.TestReporter{}
 
 			s := scanner.NewScanner(test.source, reporter)
 			tokens := s.ScanTokens()

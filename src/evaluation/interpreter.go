@@ -111,6 +111,7 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 				return nil
 			}
 		}
+
 	case *representation.Function:
 		function := NewLoxFunction(s, i.environment)
 		i.environment.Define(s.Name.Lexeme, function)
@@ -329,11 +330,12 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 
 	case *representation.This:
 		return i.lookupVariable(e.Keyword, e)
-	}
 
 	case *representation.Get:
 		object, err := i.Evaluate(e.Object)
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 		if instance, ok := object.(*LoxInstance); ok {
 			return instance.Get(e.Name)
 		}
@@ -341,16 +343,19 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 
 	case *representation.Set:
 		object, err := i.Evaluate(e.Object)
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 		if instance, ok := object.(*LoxInstance); ok {
 			value, err := i.Evaluate(e.Value)
-			if err != nil { return nil, err }
+			if err != nil {
+				return nil, err
+			}
 			instance.Set(e.Name, value)
 			return value, nil
 		}
 		return nil, newRuntimeError(e.Name, "only instances have fields.")
-
-
+	}
 
 	return nil, fmt.Errorf("unknown expression type")
 }

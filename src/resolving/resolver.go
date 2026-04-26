@@ -11,6 +11,7 @@ type ClassType int
 const (
 	ClassTypeNone ClassType = iota
 	ClassTypeClass
+	ClassTypeSubclass
 )
 
 type FunctionType int
@@ -145,11 +146,26 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		return r.resolveStmt(s.Body)
 
 	case *representation.Class:
+		enclosingClass := r.currentClass
+		r.currentClass = ClassTypeClass
+
 		r.declare(s.Name)
 		r.define(s.Name)
 
-		enclosingClass := r.currentClass
-		r.currentClass = ClassTypeClass
+		if s.Superclass != nil {
+			r.currentClass = ClassTypeSubclass
+			// prevents class Dog < Dog {}
+			if s.Name.Lexeme == s.Superclass.Name.Lexeme {
+				r.reporter.TokenError(s.Superclass.Name, "a class can't inherit from itself.")
+			}
+			err := r.resolveExpr(s.Superclass)
+			if err != nil {
+				return err
+			}
+
+			r.beginScope()
+			r.scopes[len(r.scopes)-1]["super"] = true
+		}
 
 		r.beginScope()
 		r.scopes[len(r.scopes)-1]["this"] = true
@@ -166,6 +182,9 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		}
 
 		r.endScope()
+		if s.Superclass != nil {
+			r.endScope()
+		}
 		r.currentClass = enclosingClass
 
 		return nil
@@ -241,6 +260,14 @@ func (r *Resolver) resolveExpr(expr representation.Expr) error {
 	case *representation.This:
 		if r.currentClass == ClassTypeNone {
 			r.reporter.TokenError(e.Keyword, "can't use 'this' outside of a class.")
+		}
+		r.resolveLocal(e, e.Keyword)
+
+	case *representation.Super:
+		if r.currentClass == ClassTypeNone {
+			r.reporter.TokenError(e.Keyword, "can't use 'super' outside of class.")
+		} else if r.currentClass != ClassTypeSubclass {
+			r.reporter.TokenError(e.Keyword, "can't use 'super' in a class with no superclass.")
 		}
 		r.resolveLocal(e, e.Keyword)
 	}

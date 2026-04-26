@@ -11,11 +11,6 @@ import (
 	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
-//type TestReporter struct{}
-//
-//func (r TestReporter) Error(line int, message string)                 {}
-//func (r TestReporter) TokenError(token scanner.Token, message string) {}
-
 func TestPipeline(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -56,29 +51,19 @@ func TestPipeline(t *testing.T) {
 			i := evaluation.NewInterpreter()
 			i.Stdout = &out
 
-			resolver := resolving.NewResolver(i)
-			err = resolver.ResolveStatements(statements)
+			resolver := resolving.NewResolver(i, reporter)
+			_ = resolver.ResolveStatements(statements)
 
-			if err != nil {
-				if test.expectedError {
-					return
-				}
-				t.Fatalf("Resolver returned an error for source: %s\nError: %v", test.source, err)
+			if testutils.CheckError(t, test.expectedError, nil, reporter.HadError, "RESOLVING") {
+				return
 			}
 
 			err = i.Interpret(statements)
-
+			if testutils.CheckError(t, test.expectedError, err, reporter.HadError, "INTERPRETING") {
+				return
+			}
 			if test.expectedError {
-				if err == nil {
-					t.Errorf("Expected  error for [%s], but got none", test.source)
-				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error for [%s]: %v", test.source, err)
-				}
-				if out.String() != test.expected {
-					t.Errorf("For [%s]: expected %v, got %v", test.source, test.expected, out.String())
-				}
+				t.Fatalf("expected an error for source: %s, but execution succeeded.", test.source)
 			}
 		})
 	}

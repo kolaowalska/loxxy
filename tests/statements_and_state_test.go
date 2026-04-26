@@ -11,24 +11,12 @@ import (
 	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
-//type MockReporter struct {
-//	HadError bool
-//}
-//
-//func (r *MockReporter) Error(line int, message string) {
-//	r.HadError = true
-//}
-//
-//func (r *MockReporter) TokenError(token scanner.Token, message string) {
-//	r.HadError = true
-//}
-
 func TestStatementAndState(t *testing.T) {
 	tests := []struct {
-		name        string
-		source      string
-		expectedOut string
-		expectedErr bool
+		name          string
+		source        string
+		expectedOut   string
+		expectedError bool
 	}{
 		{"Print math", "print 1 + 2 * 3;", "7\n", false},
 		{"Variable declaration and print", "var a = 1; print a;", "1\n", false},
@@ -41,60 +29,48 @@ func TestStatementAndState(t *testing.T) {
 		{"Shadowing inner scope", "var a = 1; { var a = 2; print a; }", "2\n", false},
 		{"Modifying outer scope variable in inner scope", "var a = 1; { a = 2; } print a;", "2\n", false},
 		{"Deep nesting", "var a = \"global a\"; var b = \"global b\"; var c = \"global c\"; { var a = \"outer a\"; var b = \"outer b\"; { var a = \"inner a\"; print a; print b; print c; } print a; print b; print c; } print a; print b; print c;", "inner a\nouter b\nglobal c\nouter a\nouter b\nglobal c\nglobal a\nglobal b\nglobal c\n", false},
-		{name: "Access undefined variable", source: "print undefinedVar;", expectedErr: true},
-		{name: "Invalid assignment target", source: "1 + 2 = 3;", expectedErr: true},
-		{name: "Missing semicolon after var", source: "var a = 1 print a;", expectedErr: true},
+		{name: "Access undefined variable", source: "print undefinedVar;", expectedError: true},
+		{name: "Invalid assignment target", source: "1 + 2 = 3;", expectedError: true},
+		{name: "Missing semicolon after var", source: "var a = 1 print a;", expectedError: true},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			reporter := &testutils.TestReporter{}
 			var out bytes.Buffer
 
-			s := scanner.NewScanner(tt.source, reporter)
+			s := scanner.NewScanner(test.source, reporter)
 			tokens := s.ScanTokens()
-			if reporter.HadError && !tt.expectedErr {
-				t.Fatalf("Scanner error on source: %s", tt.source)
+			if reporter.HadError && !test.expectedError {
+				t.Fatalf("Scanner error on source: %s", test.source)
 			}
 
 			p := parser.NewParser(tokens, reporter)
 			statements, err := p.Parse()
 
-			if (reporter.HadError || err != nil) && !tt.expectedErr {
-				t.Fatalf("Parser error on source: %s\n Error: %v", tt.source, err)
+			if (reporter.HadError || err != nil) && !test.expectedError {
+				t.Fatalf("Parser error on source: %s\n Error: %v", test.source, err)
 			}
-			if (reporter.HadError || err == nil) && tt.expectedErr {
+			if (reporter.HadError || err == nil) && test.expectedError {
 				return
 			}
 
-			interpreter := evaluation.NewInterpreter()
-			interpreter.Stdout = &out
+			i := evaluation.NewInterpreter()
+			i.Stdout = &out
 
-			resolver := resolving.NewResolver(interpreter)
-			err = resolver.ResolveStatements(statements)
+			resolver := resolving.NewResolver(i, reporter)
+			_ = resolver.ResolveStatements(statements)
 
-			if err != nil {
-				if tt.expectedErr {
-					return
-				}
-				t.Fatalf("Resolver returned an error for source: %s\nError: %v", tt.source, err)
-			}
-
-			err = interpreter.Interpret(statements)
-
-			if err != nil {
-				if !tt.expectedErr {
-					t.Fatalf("Unexpected error: %v", err)
-				}
+			if testutils.CheckError(t, test.expectedError, nil, reporter.HadError, "RESOLVING") {
 				return
 			}
 
-			if tt.expectedErr {
-				t.Fatalf("Expected an error but got none for source: %s", tt.source)
+			err = i.Interpret(statements)
+			if testutils.CheckError(t, test.expectedError, err, reporter.HadError, "INTERPRETING") {
+				return
 			}
-
-			if out.String() != tt.expectedOut {
-				t.Errorf("\n Expected output: \n %q \n Actual output: \n %q", tt.expectedOut, out.String())
+			if test.expectedError {
+				t.Fatalf("expected an error for source: %s, but execution succeeded.", test.source)
 			}
 		})
 	}

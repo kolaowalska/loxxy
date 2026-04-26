@@ -35,6 +35,10 @@ func (f *LoxFunction) Call(i *Interpreter, arguments []any) (any, error) {
 	if err != nil {
 		// TODO: double-check cursed type error
 		if ret, ok := errors.AsType[*ReturnValue](err); ok {
+			if f.isInitializer {
+				thisVal, _ := f.closure.GetAt(0, "this")
+				return thisVal, nil
+			}
 			return ret.Value, nil
 		}
 		return nil, err

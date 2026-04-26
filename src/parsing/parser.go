@@ -573,6 +573,20 @@ func (p *Parser) primary() (representation.Expr, error) {
 
 		return &representation.Grouping{Expression: expr}, nil
 	}
+	if p.match(scanner.SUPER) {
+		keyword := p.previous()
+		_, err := p.consume(scanner.DOT, "expect '.' after 'super'")
+		if err != nil {
+			return nil, err
+		}
+
+		method, err := p.consume(scanner.IDENTIFIER, "expect superclass method name")
+		if err != nil {
+			return nil, err
+		}
+
+		return &representation.Super{Keyword: keyword, Method: method}, nil
+	}
 
 	return nil, p.error(p.peek(), msgExpression)
 }
@@ -670,6 +684,15 @@ func (p *Parser) classDeclaration() (representation.Stmt, error) {
 		return nil, err
 	}
 
+	var superclass *representation.Variable = nil
+	if p.match(scanner.LESS) {
+		_, err := p.consume(scanner.IDENTIFIER, "expect superclass name")
+		if err != nil {
+			return nil, err
+		}
+		superclass = &representation.Variable{Name: p.previous()}
+	}
+
 	_, err = p.consume(scanner.LEFT_BRACE, "expect '{' before class body")
 	if err != nil {
 		return nil, err
@@ -689,5 +712,5 @@ func (p *Parser) classDeclaration() (representation.Stmt, error) {
 		return nil, err
 	}
 
-	return &representation.Class{Name: name, Methods: methods}, nil
+	return &representation.Class{Name: name, Superclass: superclass, Methods: methods}, nil
 }

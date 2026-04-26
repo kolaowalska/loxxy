@@ -62,8 +62,16 @@ type Return struct {
 func (r *Return) stmtNode() {}
 
 type Class struct {
-	Name    scanner.Token
-	Methods []*Function
+	Name       scanner.Token
+	Superclass *Variable
+	Methods    []*Function
 }
 
 func (c *Class) stmtNode() {}
+
+type Super struct {
+	Keyword scanner.Token
+	Method  scanner.Token
+}
+
+func (s *Super) exprNode() {}

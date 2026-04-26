@@ -8,6 +8,7 @@ import (
 	parser "github.com/kolaowalska/loxxy/src/parsing"
 	"github.com/kolaowalska/loxxy/src/resolving"
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
+	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
 type TestReporter struct{}
@@ -140,7 +141,7 @@ func TestResolvingAndBinding(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			reporter := TestReporter{}
+			reporter := &testutils.TestReporter{}
 
 			// 1. scanning
 			s := scanner.NewScanner(test.source, reporter)

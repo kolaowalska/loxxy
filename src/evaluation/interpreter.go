@@ -116,21 +116,53 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 		function := NewLoxFunction(s, i.environment, false)
 		i.environment.Define(s.Name.Lexeme, function)
 		return nil
+
 	case *representation.Class:
+		var superclass any = nil
+		if s.Superclass != nil {
+			var err error
+			superclass, err = i.Evaluate(s.Superclass)
+			if err != nil {
+				return err
+			}
+
+			if _, ok := superclass.(*LoxClass); !ok {
+				return newRuntimeError(s.Superclass.Name, "superclass must be a class.")
+			}
+		}
+
 		i.environment.Define(s.Name.Lexeme, nil)
+
+		if s.Superclass != nil {
+			i.environment = NewEnvironment(i.environment)
+			i.environment.Define("super", superclass)
+		}
+
 		methods := make(map[string]*LoxFunction)
 		for _, method := range s.Methods {
-			function := NewLoxFunction(method, i.environment, method.Name.Lexeme == "init")
+			isInit := method.Name.Lexeme == "init"
+			function := NewLoxFunction(method, i.environment, isInit)
 			methods[method.Name.Lexeme] = function
 		}
-		class := &LoxClass{Name: s.Name.Lexeme, Methods: methods}
+
+		var superclassPtr *LoxClass = nil
+		if superclass != nil {
+			superclassPtr = superclass.(*LoxClass)
+		}
+
+		class := &LoxClass{Name: s.Name.Lexeme, Superclass: superclassPtr, Methods: methods}
+
+		if superclassPtr != nil {
+			i.environment = i.environment.enclosing
+		}
+
 		err := i.environment.Assign(s.Name, class)
 		if err != nil {
 			return err
 		}
 		return nil
-	}
 
+	}
 	return fmt.Errorf("unknown statement type: %T", stmt)
 }
 
@@ -368,7 +400,21 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 			return value, nil
 		}
 		return nil, newRuntimeError(e.Name, "only instances have fields.")
+	case *representation.Super:
+		distance := i.locals[e]
 
+		superclassVal, _ := i.environment.GetAt(distance, "super")
+		superclass := superclassVal.(*LoxClass)
+
+		objectVal, _ := i.environment.GetAt(distance-1, "this")
+		object := objectVal.(*LoxInstance)
+
+		method := superclass.FindMethod(e.Method.Lexeme)
+		if method == nil {
+			return nil, newRuntimeError(e.Method, "undefined property '"+e.Method.Lexeme+"'.")
+		}
+
+		return method.Bind(object), nil
 	}
 
 	return nil, fmt.Errorf("unknown expression type")

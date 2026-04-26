@@ -550,6 +550,9 @@ func (p *Parser) primary() (representation.Expr, error) {
 	if p.match(scanner.NUMBER, scanner.STRING) {
 		return &representation.Literal{Value: p.previous().Literal}, nil
 	}
+	if p.match(scanner.THIS) {
+		return &representation.This{Keyword: p.previous()}, nil
+	}
 	if p.match(scanner.IDENTIFIER) {
 		return &representation.Variable{Name: p.previous()}, nil
 	}

@@ -7,6 +7,13 @@ import (
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
+type ClassType int
+
+const (
+	ClassTypeNone ClassType = iota
+	ClassTypeClass
+)
+
 type Resolver struct {
 	interpreter *Interpreter
 	scopes      []map[string]bool
@@ -180,6 +187,12 @@ func (r *Resolver) resolveExpr(expr representation.Expr) error {
 	case *representation.Unary:
 		return r.resolveExpr(e.Right)
 
+	case *representation.This:
+		if r.currentClass == ClassTypeNone {
+			return fmt.Errorf("can't use 'this' outside of a class")
+		}
+		r.resolveLocal(e, e.Keyword)
+		return nil
 	}
 	return nil
 }

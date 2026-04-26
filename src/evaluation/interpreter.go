@@ -326,6 +326,9 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 		}
 
 		return function.Call(i, arguments)
+
+	case *representation.This:
+		return i.lookupVariable(e.Keyword, e)
 	}
 
 	return nil, fmt.Errorf("unknown expression type")

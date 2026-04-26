@@ -7,14 +7,16 @@ import (
 )
 
 type LoxFunction struct {
-	declaration *representation.Function
-	closure     *Environment
+	declaration   *representation.Function
+	closure       *Environment
+	isInitializer bool
 }
 
-func NewLoxFunction(declaration *representation.Function, closure *Environment) *LoxFunction {
+func NewLoxFunction(declaration *representation.Function, closure *Environment, isInit bool) *LoxFunction {
 	return &LoxFunction{
-		declaration: declaration,
-		closure:     closure,
+		declaration:   declaration,
+		closure:       closure,
+		isInitializer: isInit,
 	}
 }
 
@@ -37,9 +39,21 @@ func (f *LoxFunction) Call(i *Interpreter, arguments []any) (any, error) {
 		}
 		return nil, err
 	}
+
+	if f.isInitializer {
+		thisVal, _ := f.closure.GetAt(0, "this")
+		return thisVal, nil
+	}
+
 	return nil, nil
 }
 
 func (f *LoxFunction) String() string {
 	return "<fn " + f.declaration.Name.Lexeme + ">"
+}
+
+func (f *LoxFunction) Bind(instance *LoxInstance) *LoxFunction {
+	environment := NewEnvironment(f.closure)
+	environment.Define("this", instance)
+	return NewLoxFunction(f.declaration, environment, f.isInitializer)
 }

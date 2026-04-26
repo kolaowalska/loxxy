@@ -64,3 +64,9 @@ type Call struct {
 }
 
 func (c *Call) exprNode() {}
+
+type This struct {
+	Keyword scanner.Token
+}
+
+func (t *This) exprNode() {}

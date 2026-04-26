@@ -33,7 +33,7 @@ func (c *LoxClass) FindMethod(name string) *LoxFunction {
 		return method
 	}
 	if c.Superclass != nil {
-		return c.Superclass.Superclass.FindMethod(name)
+		return c.Superclass.FindMethod(name)
 	}
 	return nil
 }

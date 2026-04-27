@@ -53,6 +53,9 @@ func (f *LoxFunction) Call(i *Interpreter, arguments []any) (any, error) {
 }
 
 func (f *LoxFunction) String() string {
+	if f.declaration.Name.Lexeme == "" {
+		return "<fn>"
+	}
 	return "<fn " + f.declaration.Name.Lexeme + ">"
 }
 

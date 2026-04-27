@@ -28,11 +28,17 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
-func (i *Interpreter) Interpret(statements []representation.Stmt) error {
+func (i *Interpreter) Interpret(statements []representation.Stmt) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("internal interpreter panic: %v", r)
+		}
+	}()
+
 	for _, statement := range statements {
-		err := i.Execute(statement)
-		if err != nil {
-			return err
+		executeError := i.Execute(statement)
+		if executeError != nil {
+			return executeError
 		}
 	}
 	return nil
@@ -430,18 +436,6 @@ func isTruthy(obj any) bool {
 	return true
 }
 
-// unnecessary due to go's two-step automatic check
-//
-//func isEqual(a any, b any) bool {
-//	if a == nil && b == nil {
-//		return true
-//	}
-//	if a == nil {
-//		return false
-//	}
-//	return a == b
-//}
-
 func stringify(val any) string {
 	if val == nil {
 		return "nil"
@@ -461,7 +455,11 @@ func (i *Interpreter) lookupVariable(name scanner.Token, expr representation.Exp
 	distance, ok := i.locals[expr]
 	if ok {
 		return i.environment.GetAt(distance, name.Lexeme)
-	} else {
-		return i.globals.Get(name)
 	}
+
+	return i.globals.Get(name)
+}
+
+func (i *Interpreter) ClearLocals() {
+	i.locals = make(map[representation.Expr]int)
 }

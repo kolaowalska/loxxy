@@ -21,6 +21,7 @@ jobs:
       uses: actions/setup-go@v6
       with:
         go-version: 'stable'
+        cache: true
 
     - uses: gwatts/go-coverage-action@v2
       id: coverage

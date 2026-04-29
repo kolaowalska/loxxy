@@ -1,0 +1,24 @@
+name: "Release"
+on:
+  push:
+    tags:
+      - 'v*' # trigger only on version tags (e.g., v1.0.1)
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to create the release
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # GoReleaser needs the full history for changelogs
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+          cache: true
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

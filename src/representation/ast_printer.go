@@ -24,7 +24,7 @@ func PrintAST(expr Expr) string {
 		return parenthesize(e.Operator.Lexeme, e.Right)
 
 	default:
-		return "UNKOWN_EXPR"
+		return "UNKNOWN_EXPR"
 	}
 }
 

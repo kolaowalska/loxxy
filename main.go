@@ -1,3 +1,10 @@
+/*
+package main provides the loxxy command-line interface
+
+usage:
+
+	loxxy [script]
+*/
 package main
 
 import (

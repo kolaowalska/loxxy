@@ -1,8 +1,6 @@
 package evaluation
 
-import (
-	"github.com/kolaowalska/loxxy/src/scanning"
-)
+import scanner "github.com/kolaowalska/loxxy/src/scanning"
 
 type Environment struct {
 	enclosing *Environment

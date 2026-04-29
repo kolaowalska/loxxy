@@ -1,10 +1,12 @@
-name: "Security Scan"
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  vulncheck:
+  govulncheck_job:
     runs-on: ubuntu-latest
+    name: Run govulncheck
     steps:
-      - uses: actions/checkout@v6
-      - name: Run govulncheck
+      - id: govulncheck
         uses: golang/govulncheck-action@v1
+        with:
+           go-version-input: 1.26.1
+           go-package: ./...

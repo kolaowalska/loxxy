@@ -113,6 +113,8 @@ func run(source string) {
 		return
 	}
 
+	interpreter.ClearLocals()
+
 	resolver := resolving.NewResolver(interpreter, reporter)
 	_ = resolver.ResolveStatements(statements)
 	if hadError {

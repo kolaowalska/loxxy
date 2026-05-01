@@ -1,5 +1,4 @@
 # fine-interpreter-szkita
-
 ## overview and purpose
 loxxy is a high-fidelity tree-walk interpreter for the lox programming language, written entirely in go.
 
@@ -89,3 +88,8 @@ the tests for specialized language features are as follows:
 - **control flow**: `tests/control_flow_test.go`
 - **inheritance**: `tests/inheritance_test.go`
 - **function closures**: `tests/functions_test.go`
+
+---
+
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/emiliamacek/da44b047ba1e0c16c4f14224e28e2618/raw/coverage.json)
+

@@ -1,6 +1,10 @@
-# Tree-walk interpreter for the Lox Programming Language
-## overview and purpose
-loxxy is a high-fidelity tree-walk interpreter for the lox programming language, written entirely in go.
+# loxxy
+> a high-fidelity tree-walk interpreter for the lox programming language, written entirely in go.
+
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/emiliamacek/da44b047ba1e0c16c4f14224e28e2618/raw/coverage.json)
+![Go version](https://img.shields.io/github/go-mod/go-version/kolaowalska/loxxy)
+![License](https://img.shields.io/github/license/kolaowalska/loxxy)
+
 
 ### language & interpreter features
 the project implements a full suite of modern language features and navigates through the standard pipeline of lexical analysis, parsing, semantic analysis, and interpretation.
@@ -91,5 +95,4 @@ the tests for specialized language features are as follows:
 
 ---
 
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/emiliamacek/da44b047ba1e0c16c4f14224e28e2618/raw/coverage.json)
 

@@ -1,4 +1,5 @@
 name: "Go Coverage"
+
 on:
   pull_request:
   push:
@@ -12,53 +13,51 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: 10
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # full history — gwatts action needs base commit for delta
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version: 'stable'
-        cache: true
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod   # pins exact version, no drift when Go releases
+          cache: true
 
-    - uses: gwatts/go-coverage-action@v2
-      id: coverage
-      with:
-        coverage-threshold: 80
-        cover-pkg: ./...
-        ignore-pattern: |
-          \.pb\.go$
-          \_string\.go$
-          loxxy/main\.go$
-        report-url: ""
+      - uses: gwatts/go-coverage-action@v2
+        id: coverage
+        with:
+          coverage-threshold: 80
+          cover-pkg: ./...
+          ignore-pattern: |
+            \.pb\.go$
+            \_string\.go$
+            main\.go$ 
+          report-url: ""
 
-    - name: Update coverage badge
-      uses: schneegans/dynamic-badges-action@v1.7.0
+      - name: Update coverage badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        if: github.ref_name == 'main'
+        with:
+          auth: ${{ secrets.COVERAGE_GIST_SECRET }}
+          gistID: da44b047ba1e0c16c4f14224e28e2618
+          filename: coverage.json
+          label: Go Coverage
+          message: ${{ steps.coverage.outputs.coverage-pct-1dp }}%
+          color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
 
-      # only update the badge when we merge into main
-      if: github.ref_name == 'main'
-      with:
-        auth: ${{ secrets.COVERAGE_GIST_SECRET }}
-        gistID: da44b047ba1e0c16c4f14224e28e2618
-        filename: coverage.json
-        label: Go Coverage
-        message: ${{ steps.coverage.outputs.coverage-pct-1dp }}%
-        color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
+      - name: Generate coverage tree map
+        run: |
+          go run github.com/nikolaydubina/go-cover-treemap@latest \
+            -coverprofile ${{ steps.coverage.outputs.gocov-agg-pathname }} \
+            -only-folders=true > treemap.svg
 
-    - name: Generate coverage tree map
-      run: |
-        go run github.com/nikolaydubina/go-cover-treemap@latest \
-          -coverprofile ${{ steps.coverage.outputs.gocov-agg-pathname }} \
-          -only-folders=true > treemap.svg
-
-    - name: Save Coverage Report & Treemap
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: go-coverage-results
-        path: |
-          ${{ steps.coverage.outputs.report-pathname }}
-          treemap.svg
+      - name: Save Coverage Report & Treemap
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage-results
+          path: |
+            ${{ steps.coverage.outputs.report-pathname }}
+            treemap.svg         treemap.svg

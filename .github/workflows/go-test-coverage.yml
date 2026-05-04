@@ -38,7 +38,7 @@ jobs:
       uses: schneegans/dynamic-badges-action@v1.7.0
 
       # only update the badge when we merge into main
-      if: github.ref_name == 'main'
+      if: github.ref_name == 'test-workflows'
       with:
         auth: ${{ secrets.COVERAGE_GIST_SECRET }}
         gistID: da44b047ba1e0c16c4f14224e28e2618

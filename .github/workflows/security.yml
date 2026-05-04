@@ -10,4 +10,3 @@ jobs:
         with:
            go-version-input: 1.26.1
            go-package: ./...
-           check-args: -show verbose

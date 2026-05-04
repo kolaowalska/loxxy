@@ -1,4 +1,4 @@
-# fine-interpreter-szkita
+# Tree-walk interpreter for the Lox Programming Language
 ## overview and purpose
 loxxy is a high-fidelity tree-walk interpreter for the lox programming language, written entirely in go.
 

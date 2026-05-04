@@ -10,7 +10,7 @@ formatters:
     - goimports  
   settings:
     goimports:
-      local-prefixes: github.com/kolaowalska/loxxy
+      local-prefixes: [github.com/kolaowalska/loxxy]
 
 
 linters:

@@ -50,3 +50,11 @@ func (e *Environment) AssignAt(distance int, name scanner.Token, value any) erro
 	e.ancestor(distance).values[name.Lexeme] = value
 	return nil
 }
+
+func (e *Environment) Snapshot() map[string]any {
+	out := make(map[string]any, len(e.values))
+	for k, v := range e.values {
+		out[k] = v
+	}
+	return out
+}

@@ -15,6 +15,8 @@ type Interpreter struct {
 	Stdout      io.Writer
 	globals     *Environment
 	locals      map[representation.Expr]int
+	hook        DebugHook   // nil when not debugging
+	callStack   []CallFrame // maintained during execution
 }
 
 func NewInterpreter() *Interpreter {
@@ -29,6 +31,9 @@ func NewInterpreter() *Interpreter {
 }
 
 func (i *Interpreter) Interpret(statements []representation.Stmt) (err error) {
+	i.callStack = append(i.callStack, CallFrame{Name: "<script>", Line: 0})
+	defer func() { i.callStack = i.callStack[:len(i.callStack)-1] }()
+
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("internal interpreter panic: %v", r)
@@ -45,6 +50,12 @@ func (i *Interpreter) Interpret(statements []representation.Stmt) (err error) {
 }
 
 func (i *Interpreter) Execute(stmt representation.Stmt) error {
+	if i.hook != nil {
+		if line := stmtLine(stmt); line > 0 {
+			i.hook.OnStatement(line, append([]CallFrame{}, i.callStack...), i.environment)
+		}
+	}
+
 	switch s := stmt.(type) {
 	case *representation.If:
 		condition, err := i.Evaluate(s.Condition)
@@ -462,4 +473,53 @@ func (i *Interpreter) lookupVariable(name scanner.Token, expr representation.Exp
 
 func (i *Interpreter) ClearLocals() {
 	i.locals = make(map[representation.Expr]int)
+}
+
+// function to extract the best available line from any statement
+func stmtLine(stmt representation.Stmt) int {
+	switch s := stmt.(type) {
+	case *representation.Var:
+		return s.Name.Line
+	case *representation.Function:
+		return s.Name.Line
+	case *representation.If:
+		return exprLine(s.Condition)
+	case *representation.While:
+		return exprLine(s.Condition)
+	case *representation.Print:
+		return exprLine(s.Expression)
+	case *representation.Return:
+		return s.Keyword.Line
+	case *representation.Expression:
+		return exprLine(s.Expression)
+	case *representation.Class:
+		return s.Name.Line
+	}
+	return 0
+}
+
+func exprLine(expr representation.Expr) int {
+	switch e := expr.(type) {
+	case *representation.Assign:
+		return e.Name.Line
+	case *representation.Binary:
+		return e.Operator.Line
+	case *representation.Call:
+		return e.Paren.Line
+	case *representation.Get:
+		return e.Name.Line
+	case *representation.Logical:
+		return e.Operator.Line
+	case *representation.Set:
+		return e.Name.Line
+	case *representation.Super:
+		return e.Keyword.Line
+	case *representation.This:
+		return e.Keyword.Line
+	case *representation.Unary:
+		return e.Operator.Line
+	case *representation.Variable:
+		return e.Name.Line
+	}
+	return 0
 }

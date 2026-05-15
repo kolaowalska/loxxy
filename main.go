@@ -57,6 +57,8 @@ func init() {
 }
 
 func main() {
+	//TODO: setting --debug flag and attaching debugger here
+
 	args := os.Args[1:]
 	if len(args) > 1 {
 		fmt.Println("usage: loxxy [script]") //TODO: later think about changing to loxxy

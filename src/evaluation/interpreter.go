@@ -15,7 +15,7 @@ type Interpreter struct {
 	Stdout      io.Writer
 	globals     *Environment
 	locals      map[representation.Expr]int
-	hook        DebugHook   // nil when not debugging
+	Hook        DebugHook   // nil when not debugging
 	callStack   []CallFrame // maintained during execution
 }
 
@@ -50,9 +50,9 @@ func (i *Interpreter) Interpret(statements []representation.Stmt) (err error) {
 }
 
 func (i *Interpreter) Execute(stmt representation.Stmt) error {
-	if i.hook != nil {
+	if i.Hook != nil {
 		if line := stmtLine(stmt); line > 0 {
-			i.hook.OnStatement(line, append([]CallFrame{}, i.callStack...), i.environment)
+			i.Hook.OnStatement(line, append([]CallFrame{}, i.callStack...), i.environment)
 		}
 	}
 

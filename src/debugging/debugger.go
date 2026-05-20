@@ -9,6 +9,12 @@ import (
 	"github.com/kolaowalska/loxxy/src/evaluation"
 )
 
+type PauseSnapshot struct {
+	Line   int
+	Frames []evaluation.CallFrame
+	Locals map[string]any
+}
+
 type Debugger struct {
 	breakpoints map[int]bool
 	stepMode    bool
@@ -16,6 +22,12 @@ type Debugger struct {
 
 	in  *bufio.Reader
 	out io.Writer
+
+	LastPausedLine int
+	LastFrames     []evaluation.CallFrame
+	LastLocals     map[string]any
+
+	PauseHistory []PauseSnapshot
 }
 
 func NewDebugger(in io.Reader, out io.Writer) *Debugger {
@@ -23,6 +35,7 @@ func NewDebugger(in io.Reader, out io.Writer) *Debugger {
 		breakpoints: make(map[int]bool),
 		in:          bufio.NewReader(in),
 		out:         out,
+		stepMode:    true,
 	}
 }
 
@@ -56,11 +69,19 @@ func (d *Debugger) OnStatement(
 		return
 	}
 
+	snapshot := PauseSnapshot{
+		Line:   line,
+		Frames: append([]evaluation.CallFrame{}, frames...),
+		Locals: env.Snapshot(),
+	}
+
+	d.LastPausedLine = line
+	d.LastFrames = snapshot.Frames
+	d.LastLocals = snapshot.Locals
+
+	d.PauseHistory = append(d.PauseHistory, snapshot)
+
 	d.stepMode = false
 	d.renderPause(line, frames, env)
 	d.commandLoop()
-}
-
-func (d *Debugger) commandLoop() {
-	// TODO (emipoprostu B) )
 }

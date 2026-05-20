@@ -36,7 +36,7 @@ func (e *Environment) Assign(name scanner.Token, value any) error {
 
 func (e *Environment) ancestor(distance int) *Environment {
 	environment := e
-	for i := 0; i < distance; i++ {
+	for range distance {
 		environment = environment.enclosing
 	}
 	return environment
@@ -52,9 +52,20 @@ func (e *Environment) AssignAt(distance int, name scanner.Token, value any) erro
 }
 
 func (e *Environment) Snapshot() map[string]any {
-	out := make(map[string]any, len(e.values))
-	for k, v := range e.values {
-		out[k] = v
+	out := make(map[string]any)
+
+	current := e
+
+	for current != nil {
+		for k, v := range current.values {
+			// preserve nearest scope binding
+			if _, exists := out[k]; !exists {
+				out[k] = v
+			}
+		}
+
+		current = current.enclosing
 	}
+
 	return out
 }

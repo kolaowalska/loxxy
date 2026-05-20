@@ -10,12 +10,14 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
 
+	debugging "github.com/kolaowalska/loxxy/src/debugging"
 	"github.com/kolaowalska/loxxy/src/evaluation"
 	parser "github.com/kolaowalska/loxxy/src/parsing"
 	"github.com/kolaowalska/loxxy/src/resolving"
@@ -57,19 +59,42 @@ func init() {
 }
 
 func main() {
-	//TODO: setting --debug flag and attaching debugger here
+	debugFlag := flag.Bool("debug", false, "run with debugger")
 
-	args := os.Args[1:]
+	flag.Parse()
+	args := flag.Args()
+
+	if *debugFlag {
+		if len(args) != 1 {
+			fmt.Println("usage: loxxy -debug <script>")
+			os.Exit(64)
+		}
+
+		runFileDebug(args[0])
+		return
+	}
+
 	if len(args) > 1 {
-		fmt.Println("usage: loxxy [script]") //TODO: later think about changing to loxxy
+		fmt.Println("usage: loxxy [script]")
 		os.Exit(64)
-	} else if len(args) == 1 {
+	}
+
+	if len(args) == 1 {
 		runFile(args[0])
 	} else {
 		runPrompt(os.Stdin, os.Stdout)
 	}
 }
+func runFileDebug(path string) {
+	src, _ := os.ReadFile(path)
 
+	dbg := debugging.NewDebugger(os.Stdin, os.Stderr)
+	dbg.LoadSource(string(src))
+
+	interpreter.Hook = dbg
+
+	run(string(src))
+}
 func runFile(path string) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {

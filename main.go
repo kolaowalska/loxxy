@@ -58,43 +58,31 @@ func init() {
 	log.SetFlags(0)
 }
 
-func main() {
-	debugFlag := flag.Bool("debug", false, "run with debugger")
-
-	flag.Parse()
-	args := flag.Args()
-
-	if *debugFlag {
-		if len(args) != 1 {
-			fmt.Println("usage: loxxy -debug <script>")
-			os.Exit(64)
-		}
-
-		runFileDebug(args[0])
-		return
+func runFileDebug(path string, initialBreak int) {
+	src, err := os.ReadFile(path)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		os.Exit(66)
 	}
-
-	if len(args) > 1 {
-		fmt.Println("usage: loxxy [script]")
-		os.Exit(64)
-	}
-
-	if len(args) == 1 {
-		runFile(args[0])
-	} else {
-		runPrompt(os.Stdin, os.Stdout)
-	}
-}
-func runFileDebug(path string) {
-	src, _ := os.ReadFile(path)
 
 	dbg := debugging.NewDebugger(os.Stdin, os.Stderr)
 	dbg.LoadSource(string(src))
+	if initialBreak > 0 {
+		dbg.SetBreakpoint(initialBreak)
+	}
 
 	interpreter.Hook = dbg
 
 	run(string(src))
+
+	if hadError {
+		os.Exit(65)
+	}
+	if hadRuntimeError {
+		os.Exit(70)
+	}
 }
+
 func runFile(path string) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
@@ -161,5 +149,33 @@ func run(source string) {
 			reportRuntimeError(rterr)
 		}
 	}
+}
 
+func main() {
+	debugFlag := flag.Bool("debug", false, "run with debugger")
+	breakFlag := flag.Int("break", 0, "set an initial breakpoint at line N (requires -debug)")
+
+	flag.Parse()
+	args := flag.Args()
+
+	if *debugFlag {
+		if len(args) != 1 {
+			fmt.Println("usage: loxxy -debug [-break N] <script>")
+			os.Exit(64)
+		}
+
+		runFileDebug(args[0], *breakFlag)
+		return
+	}
+
+	if len(args) > 1 {
+		fmt.Println("usage: loxxy [script]")
+		os.Exit(64)
+	}
+
+	if len(args) == 1 {
+		runFile(args[0])
+	} else {
+		runPrompt(os.Stdin, os.Stdout)
+	}
 }

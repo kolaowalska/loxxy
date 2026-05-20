@@ -51,9 +51,10 @@ func (d *Debugger) renderLocals(env *evaluation.Environment) {
 }
 
 func (d *Debugger) renderCallStack(frames []evaluation.CallFrame) {
+	lastIndex := len(frames) - 1
 	for i, f := range frames {
 		marker := "  "
-		if i == 0 {
+		if i == lastIndex {
 			marker = "→ "
 		}
 		_, err := fmt.Fprintf(d.out, "  %s%-16s line %d\n", marker, f.Name, f.Line)

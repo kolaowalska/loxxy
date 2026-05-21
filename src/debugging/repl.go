@@ -18,7 +18,7 @@ func (d *Debugger) commandLoop() {
 
 		case line == "" || line == "s":
 			// Enter or s → step
-			d.stepMode = true
+			d.StepMode = true
 			return
 
 		case line == "c":

@@ -75,7 +75,7 @@ func (d *Debugger) renderPause(
 		return
 	}
 	d.renderSourceContext(line)
-	_, err = fmt.Fprintf(d.out, "\n—— LOCALS %s\n", sep)
+	_, err = fmt.Fprintf(d.out, "\n—— LOCALS ———— %s\n", sep)
 	if err != nil {
 		return
 	}

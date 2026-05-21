@@ -17,7 +17,7 @@ type PauseSnapshot struct {
 
 type Debugger struct {
 	breakpoints map[int]bool
-	stepMode    bool
+	StepMode    bool
 	sourceLines []string
 
 	in  *bufio.Reader
@@ -35,7 +35,7 @@ func NewDebugger(in io.Reader, out io.Writer) *Debugger {
 		breakpoints: make(map[int]bool),
 		in:          bufio.NewReader(in),
 		out:         out,
-		stepMode:    true,
+		StepMode:    true,
 	}
 }
 
@@ -65,7 +65,7 @@ func (d *Debugger) OnStatement(
 	frames []evaluation.CallFrame,
 	env *evaluation.Environment,
 ) {
-	if !d.stepMode && !d.breakpoints[line] {
+	if !d.StepMode && !d.breakpoints[line] {
 		return
 	}
 
@@ -81,7 +81,7 @@ func (d *Debugger) OnStatement(
 
 	d.PauseHistory = append(d.PauseHistory, snapshot)
 
-	d.stepMode = false
+	d.StepMode = false
 	d.renderPause(line, frames, env)
 	d.commandLoop()
 }

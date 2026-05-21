@@ -95,13 +95,35 @@ fun greet(name) {
 greet("john");
 ~~~
 
+the debugger pauses at line 3 and shows source context, locals, and the call stack:
+~~~
+—— PAUSED — line 3 ————————————————————————————————————————————————————————————
+
+    1 | fun greet(name) {
+    2 |     var msg = "all your sins are attempts to fill voids, " + name;
+→   3 |     print msg;
+    4 | }
+    5 | 
+
+—— LOCALS —————————————————————————————————————————————————————————————————————
+  msg          = all your sins are attempts to fill voids, john
+  name         = john
+
+—— CALL STACK —————————————————————————————————————————————————————————————————
+    <script>         line 0
+  → greet            line 1
+
+———————————————————————————————————————————————————————————————————————————————
+[enter] step  [c] continue  [b N] breakpoint  [d N] delete  [q] quit
+> c 
+all your sins are attempts to fill voids, john
+~~~
 
 **commands:**
 
 | command   | action                              |
 |-----------|-------------------------------------|
 | `enter`   | step to the next statement          |
-| `s`       | step to the next statement          |
 | `c`       | continue until the next breakpoint  |
 | `b N`     | set a breakpoint at line N          |
 | `d N`     | delete the breakpoint at line N     |

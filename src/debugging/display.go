@@ -69,23 +69,23 @@ func (d *Debugger) renderPause(
 	frames []evaluation.CallFrame,
 	env *evaluation.Environment,
 ) {
-	sep := strings.Repeat("—", 50)
+	sep := strings.Repeat("—", 100)
 	_, err := fmt.Fprintf(d.out, "\n—— PAUSED — line %d %s\n\n", line, sep)
 	if err != nil {
 		return
 	}
 	d.renderSourceContext(line)
-	_, err = fmt.Fprintf(d.out, "\n—— LOCALS ———— %s\n", sep)
+	_, err = fmt.Fprintf(d.out, "\n—— LOCALS —————————%s\n", sep)
 	if err != nil {
 		return
 	}
 	d.renderLocals(env)
-	_, err = fmt.Fprintf(d.out, "\n—— CALL STACK %s\n", sep)
+	_, err = fmt.Fprintf(d.out, "\n—— CALL STACK —————%s\n", sep)
 	if err != nil {
 		return
 	}
 	d.renderCallStack(frames)
-	_, err = fmt.Fprintf(d.out, "\n%s\n", sep)
+	_, err = fmt.Fprintf(d.out, "\n%s———————————————————\n", sep)
 	if err != nil {
 		return
 	}

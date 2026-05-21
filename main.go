@@ -69,6 +69,7 @@ func runFileDebug(path string, initialBreak int) {
 	dbg.LoadSource(string(src))
 	if initialBreak > 0 {
 		dbg.SetBreakpoint(initialBreak)
+		dbg.StepMode = false
 	}
 
 	interpreter.Hook = dbg

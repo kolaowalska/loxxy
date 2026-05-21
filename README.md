@@ -43,7 +43,6 @@ the architecture is structured chronologically by compiler phase to maximize mod
 5. **evaluation** (`src/evaluation/`) - runtime environment 
 6. **testing** (`tests/`, `src/testutils/`) - tests and utilities for the testing pipeline
 
-
 ## quick start
 ### prerequisites 
 - Go version 1.26.1 or higher
@@ -78,6 +77,36 @@ run
 ./loxxy path/to/script
 ~~~
 to execute a `.lox` file.
+
+## debugging 
+loxxy includes a built-in source-level debugger that can be launched with the `-debug` flag. optionally, set an initial breakpoint with `-break N`:
+~~~bash
+./loxxy -debug [-break N] script.lox
+~~~
+
+### a debugger dog and pony show
+given `script.lox`:
+~~~lox
+fun greet(name) {
+    var msg = "don't forget that what you see isn't all there is, " + name;
+    print msg;
+}
+
+greet("john");
+~~~
+
+
+**commands:**
+
+| command   | action                              |
+|-----------|-------------------------------------|
+| `enter`   | step to the next statement          |
+| `s`       | step to the next statement          |
+| `c`       | continue until the next breakpoint  |
+| `b N`     | set a breakpoint at line N          |
+| `d N`     | delete the breakpoint at line N     |
+| `l`       | list all active breakpoints         |
+| `q`       | quit                                |
 
 ## testing 
 the project is equipped with an extensive testing suite that utilizes a central `testutils` package to validate the scanner, parser, resolver, and interpreter in a unified pipeline.

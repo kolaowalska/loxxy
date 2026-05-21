@@ -52,20 +52,21 @@ func (e *Environment) AssignAt(distance int, name scanner.Token, value any) erro
 }
 
 func (e *Environment) Snapshot() map[string]any {
-	out := make(map[string]any)
+	out := make(map[string]any, len(e.values))
 
-	current := e
+	if e.enclosing == nil {
+		for k, v := range e.values {
+			out[k] = v
+		}
+		return out
+	}
 
-	for current != nil {
-		for k, v := range current.values {
-			// preserve nearest scope binding
+	for env := e; env.enclosing != nil; env = env.enclosing {
+		for k, v := range env.values {
 			if _, exists := out[k]; !exists {
 				out[k] = v
 			}
 		}
-
-		current = current.enclosing
 	}
-
 	return out
 }

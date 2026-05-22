@@ -20,8 +20,10 @@ type Interpreter struct {
 }
 
 func NewInterpreter() *Interpreter {
-	globals := NewEnvironment(nil)
-	globals.Define("clock", &NativeClock{})
+	builtins := NewEnvironment(nil)
+	builtins.Define("clock", &NativeClock{})
+	globals := NewEnvironment(builtins)
+	globals.isGlobalScope = true
 	return &Interpreter{
 		environment: globals,
 		Stdout:      os.Stdout,
@@ -52,6 +54,9 @@ func (i *Interpreter) Interpret(statements []representation.Stmt) (err error) {
 func (i *Interpreter) Execute(stmt representation.Stmt) error {
 	if i.Hook != nil {
 		if line := stmtLine(stmt); line > 0 {
+			if len(i.callStack) > 0 {
+				i.callStack[len(i.callStack)-1].Line = line
+			}
 			i.Hook.OnStatement(line, append([]CallFrame{}, i.callStack...), i.environment)
 		}
 	}
@@ -273,7 +278,7 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 			return !isTruthy(right), nil
 
 		default:
-			return nil, fmt.Errorf("it's not supposed to go there, error in func Evaluate in Unary case - unknown operator")
+			return nil, fmt.Errorf("error in func Evaluate in Unary case - unknown operator")
 
 		}
 
@@ -303,7 +308,7 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 				return nil, err
 			}
 			if right.(float64) == 0 { //TODO: test if needed
-				return nil, newRuntimeError(e.Operator, "Cannot divide by zero.")
+				return nil, newRuntimeError(e.Operator, "cannot divide by zero.")
 			}
 			return left.(float64) / right.(float64), nil
 
@@ -325,7 +330,7 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 					return l + r, nil
 				}
 			}
-			return nil, newRuntimeError(e.Operator, "Operands must be two numbers or two strings.")
+			return nil, newRuntimeError(e.Operator, "operands must be two numbers or two strings.")
 
 		case scanner.GREATER:
 			err := checkNumberOperands(e.Operator, left, right)

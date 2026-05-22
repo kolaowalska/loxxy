@@ -3,8 +3,9 @@ package evaluation
 import scanner "github.com/kolaowalska/loxxy/src/scanning"
 
 type Environment struct {
-	enclosing *Environment
-	values    map[string]any
+	enclosing     *Environment
+	values        map[string]any
+	isGlobalScope bool // marks the globals env; snapshot stops here
 }
 
 func NewEnvironment(enclosing *Environment) *Environment {
@@ -52,20 +53,18 @@ func (e *Environment) AssignAt(distance int, name scanner.Token, value any) erro
 }
 
 func (e *Environment) Snapshot() map[string]any {
-	out := make(map[string]any, len(e.values))
-
-	if e.enclosing == nil {
-		for k, v := range e.values {
-			out[k] = v
+	out := make(map[string]any)
+	for env := e; env != nil; env = env.enclosing {
+		if env.isGlobalScope && env != e {
+			break
 		}
-		return out
-	}
-
-	for env := e; env.enclosing != nil; env = env.enclosing {
 		for k, v := range env.values {
 			if _, exists := out[k]; !exists {
 				out[k] = v
 			}
+		}
+		if env.isGlobalScope {
+			break
 		}
 	}
 	return out

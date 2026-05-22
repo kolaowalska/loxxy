@@ -43,7 +43,7 @@ func (d *Debugger) commandLoop() {
 			}
 
 		case line == "stack":
-			// re-render just the stack section (cached from last pause)
+			d.renderCallStack(d.LastFrames)
 
 		case line == "q":
 			os.Exit(0)

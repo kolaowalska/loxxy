@@ -59,42 +59,60 @@ go build -o loxxy main.go
 ### usage
 loxxy can be used in REPL mode or script execution mode.
 
-- **interactive REPL**:
-run 
+- **interactive REPL**
+
+run
 ~~~bash 
 ./loxxy
 ~~~
-to start a prompt, for example
+to start a prompt, for example:
 ~~~bash
 > var greeting = "feeling... foxxy ;)";
 > print greeting;
 feeling... foxxy ;)
 ~~~
 
-- **script execution**:
-run 
+- **script execution**
+
+run
 ~~~bash
 ./loxxy path/to/script
 ~~~
 to execute a `.lox` file.
 
 ## debugging 
-loxxy includes a built-in source-level debugger that can be launched with the `-debug` flag. optionally, set an initial breakpoint with `-break N`:
+loxxy includes a minimal built-in source-level debugging tool that can be launched with the `-debug` flag. 
 ~~~bash
 ./loxxy -debug [-break N] script.lox
 ~~~
+optionally, set an initial breakpoint with `-break N`.
 
-### a debugger dog and pony show
+**available commands:**
+
+| command   | action                              |
+|-----------|-------------------------------------|
+| `enter`   | step to the next statement          |
+| `c`       | continue until the next breakpoint  |
+| `b N`     | set a breakpoint at line N          |
+| `d N`     | delete the breakpoint at line N     |
+| `l`       | list all active breakpoints         |
+| `q`       | quit                                |
+
+### debugger dog and pony show
 given `script.lox`:
-~~~lox
+~~~javascript
 fun greet(name) {
-    var msg = "don't forget that what you see isn't all there is, " + name;
+    var msg = "all your sins are attempts to fill voids, " + name;
     print msg;
 }
 
 greet("john");
 ~~~
 
+and having entered the following command:
+~~~bash
+./loxxy -debug -break 3 script.lox
+~~~
 the debugger pauses at line 3 and shows source context, locals, and the call stack:
 ~~~
 —— PAUSED — line 3 ————————————————————————————————————————————————————————————
@@ -110,7 +128,7 @@ the debugger pauses at line 3 and shows source context, locals, and the call sta
   name         = john
 
 —— CALL STACK —————————————————————————————————————————————————————————————————
-    <script>         line 0
+    <script>         line 6
   → greet            line 1
 
 ———————————————————————————————————————————————————————————————————————————————
@@ -118,17 +136,6 @@ the debugger pauses at line 3 and shows source context, locals, and the call sta
 > c 
 all your sins are attempts to fill voids, john
 ~~~
-
-**commands:**
-
-| command   | action                              |
-|-----------|-------------------------------------|
-| `enter`   | step to the next statement          |
-| `c`       | continue until the next breakpoint  |
-| `b N`     | set a breakpoint at line N          |
-| `d N`     | delete the breakpoint at line N     |
-| `l`       | list all active breakpoints         |
-| `q`       | quit                                |
 
 ## testing 
 the project is equipped with an extensive testing suite that utilizes a central `testutils` package to validate the scanner, parser, resolver, and interpreter in a unified pipeline.

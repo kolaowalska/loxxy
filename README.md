@@ -50,7 +50,7 @@ the architecture is structured chronologically by compiler phase to maximize mod
 ### installation
 1. clone the repository to your local machine 
 2. build the binary
-~~~bash
+~~~shell
 git clone https://github.com/kolaowalska/loxxy.git
 cd loxxy
 go build -o loxxy main.go
@@ -62,11 +62,11 @@ loxxy can be used in REPL mode or script execution mode.
 - **interactive REPL**
 
 run
-~~~bash 
+~~~shell 
 ./loxxy
 ~~~
 to start a prompt, for example:
-~~~bash
+~~~shell
 > var greeting = "feeling... foxxy ;)";
 > print greeting;
 feeling... foxxy ;)
@@ -75,17 +75,23 @@ feeling... foxxy ;)
 - **script execution**
 
 run
-~~~bash
+~~~shell
 ./loxxy path/to/script
 ~~~
 to execute a `.lox` file.
 
 ## debugging 
-loxxy includes a minimal built-in source-level debugging tool that can be launched with the `-debug` flag. 
-~~~bash
-./loxxy -debug [-break N] script.lox
+loxxy includes a minimal built-in source-level debugging tool that can be launched with the `--debug` flag. 
+~~~shell
+./loxxy --debug [--break N] [--context N] script.lox
 ~~~
-optionally, set an initial breakpoint with `-break N`.
+**flags:**
+
+| flag                 | short | description                                                 |
+|----------------------|-------|-------------------------------------------------------------|
+| `--debug`            | `-d`  | launch the debugger tool                                    |
+| `--break N`          | `-b N`| set an initial breakpoint at line N                         |
+| `--context N`        | `-c N`| source lines shown above and below the cursor (default = 3) |
 
 **available commands:**
 
@@ -110,11 +116,11 @@ greet("john");
 ~~~
 
 and having entered the following command:
-~~~bash
-./loxxy -debug -break 3 script.lox
+~~~shell
+./loxxy --debug --break 3 script.lox
 ~~~
 the debugger pauses at line 3 and shows source context, locals, and the call stack:
-~~~
+~~~shell
 —— PAUSED — line 3 ————————————————————————————————————————————————————————————
 
     1 | fun greet(name) {
@@ -141,7 +147,7 @@ all your sins are attempts to fill voids, john
 the project is equipped with an extensive testing suite that utilizes a central `testutils` package to validate the scanner, parser, resolver, and interpreter in a unified pipeline.
 
 the following command runs all available tests:
-~~~bash
+~~~shell
 go test ./...
 ~~~
 

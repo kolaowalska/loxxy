@@ -9,12 +9,12 @@ import (
 )
 
 func (d *Debugger) renderSourceContext(line int) {
-	start := line - 3
+	start := line - d.ContextSize
 	if start < 1 {
 		start = 1
 	}
 
-	end := line + 2
+	end := line + d.ContextSize
 	if end > len(d.sourceLines) {
 		end = len(d.sourceLines)
 	}

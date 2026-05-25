@@ -67,7 +67,7 @@ func init() {
 	log.SetFlags(0)
 }
 
-func runFileDebug(path string, initialBreak int) {
+func runFileDebug(path string, initialBreak int, contextSize int) {
 	src, err := os.ReadFile(path)
 	if err != nil {
 		log.Printf("error: %v\n", err)
@@ -76,6 +76,7 @@ func runFileDebug(path string, initialBreak int) {
 
 	dbg := debugging.NewDebugger(os.Stdin, os.Stderr)
 	dbg.LoadSource(string(src))
+	dbg.ContextSize = contextSize
 	if initialBreak > 0 {
 		dbg.SetBreakpoint(initialBreak)
 		dbg.StepMode = false
@@ -167,7 +168,13 @@ func run(source string) {
 
 func main() {
 	debugFlag := flag.Bool("debug", false, "run with debugger")
+	flag.BoolVar(debugFlag, "d", false, "short for --debug")
+
 	breakFlag := flag.Int("break", 0, "set an initial breakpoint at line N")
+	flag.IntVar(breakFlag, "b", 0, "short for --break")
+
+	contextFlag := flag.Int("context", 3, "source context lines shown around current line")
+	flag.IntVar(contextFlag, "c", 3, "short for --context")
 
 	flag.Parse()
 	args := flag.Args()
@@ -177,11 +184,11 @@ func main() {
 
 	if isDebugMode {
 		if len(args) != 1 {
-			fmt.Println("usage: loxxy -debug [-break N] <script>")
+			fmt.Println("usage: loxxy --debug [--break N] [--context N] <script>")
 			os.Exit(exitUsage)
 		}
 
-		runFileDebug(args[0], *breakFlag)
+		runFileDebug(args[0], *breakFlag, *contextFlag)
 		return
 	}
 

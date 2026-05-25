@@ -23,6 +23,7 @@ type Debugger struct {
 	breakpoints map[int]bool
 	StepMode    bool
 	sourceLines []string
+	ContextSize int
 
 	in  *bufio.Reader
 	out io.Writer
@@ -40,6 +41,7 @@ func NewDebugger(in io.Reader, out io.Writer) *Debugger {
 		in:          bufio.NewReader(in),
 		out:         out,
 		StepMode:    true,
+		ContextSize: 3,
 	}
 }
 

@@ -155,6 +155,10 @@ func run(source string) {
 
 	err := interpreter.Interpret(statements)
 	if err != nil {
+		if errors.Is(err, debugging.ErrQuit) {
+			os.Exit(exitSuccess)
+		}
+
 		if rterr, ok := errors.AsType[*evaluation.RuntimeError](err); ok {
 			reportRuntimeError(rterr)
 		}

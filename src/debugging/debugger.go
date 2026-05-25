@@ -2,12 +2,16 @@ package debugging
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"sort"
 	"strings"
 
 	"github.com/kolaowalska/loxxy/src/evaluation"
 )
+
+// ErrQuit is returned when user explicitly quits the debugger
+var ErrQuit = errors.New("debugger quit requested")
 
 type PauseSnapshot struct {
 	Line   int

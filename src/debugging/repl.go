@@ -2,12 +2,11 @@ package debugging
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
 
-func (d *Debugger) commandLoop() {
+func (d *Debugger) commandLoop() error {
 	for {
 		_, _ = fmt.Fprint(d.out, "> ")
 
@@ -19,11 +18,11 @@ func (d *Debugger) commandLoop() {
 		case line == "" || line == "s":
 			// Enter or s → step
 			d.StepMode = true
-			return
+			return nil
 
 		case line == "c":
 			// continue
-			return
+			return nil
 
 		case strings.HasPrefix(line, "b "):
 			n, err := strconv.Atoi(strings.TrimPrefix(line, "b "))
@@ -46,7 +45,7 @@ func (d *Debugger) commandLoop() {
 			d.renderCallStack(d.LastFrames)
 
 		case line == "q":
-			os.Exit(0)
+			return ErrQuit
 
 		default:
 			_, _ = fmt.Fprintf(d.out, "unknown command %q\n", line)

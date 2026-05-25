@@ -167,12 +167,15 @@ func run(source string) {
 
 func main() {
 	debugFlag := flag.Bool("debug", false, "run with debugger")
-	breakFlag := flag.Int("break", 0, "set an initial breakpoint at line N (requires -debug)")
+	breakFlag := flag.Int("break", 0, "set an initial breakpoint at line N")
 
 	flag.Parse()
 	args := flag.Args()
 
-	if *debugFlag {
+	// silently set debug mode
+	isDebugMode := *debugFlag || *breakFlag > 0
+
+	if isDebugMode {
 		if len(args) != 1 {
 			fmt.Println("usage: loxxy -debug [-break N] <script>")
 			os.Exit(exitUsage)

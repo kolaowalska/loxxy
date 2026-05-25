@@ -68,9 +68,9 @@ func (d *Debugger) OnStatement(
 	line int,
 	frames []evaluation.CallFrame,
 	env *evaluation.Environment,
-) {
+) error {
 	if !d.StepMode && !d.breakpoints[line] {
-		return
+		return nil
 	}
 
 	snapshot := PauseSnapshot{
@@ -87,5 +87,6 @@ func (d *Debugger) OnStatement(
 
 	d.StepMode = false
 	d.renderPause(line, frames, env)
-	d.commandLoop()
+
+	return d.commandLoop()
 }

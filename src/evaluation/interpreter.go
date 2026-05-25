@@ -57,7 +57,10 @@ func (i *Interpreter) Execute(stmt representation.Stmt) error {
 			if len(i.callStack) > 0 {
 				i.callStack[len(i.callStack)-1].Line = line
 			}
-			i.Hook.OnStatement(line, append([]CallFrame{}, i.callStack...), i.environment)
+			err := i.Hook.OnStatement(line, append([]CallFrame{}, i.callStack...), i.environment)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

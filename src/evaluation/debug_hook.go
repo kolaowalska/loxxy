@@ -7,5 +7,5 @@ type CallFrame struct {
 
 type DebugHook interface {
 	// Called before every statement, blocks when a breakpoint (or step) fires
-	OnStatement(line int, frames []CallFrame, env *Environment)
+	OnStatement(line int, frames []CallFrame, env *Environment) error
 }

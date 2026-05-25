@@ -24,6 +24,15 @@ import (
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
+const (
+	exitSuccess  = 0
+	exitFailure  = 1
+	exitUsage    = 64 // incorrect command line usage
+	exitDataErr  = 65 // incorrect input data
+	exitNoInput  = 66 // input file does not exist or is unreadable
+	exitSoftware = 70 // internal software error
+)
+
 var hadError = false
 var hadRuntimeError = false
 
@@ -62,7 +71,7 @@ func runFileDebug(path string, initialBreak int) {
 	src, err := os.ReadFile(path)
 	if err != nil {
 		log.Printf("error: %v\n", err)
-		os.Exit(66)
+		os.Exit(exitNoInput)
 	}
 
 	dbg := debugging.NewDebugger(os.Stdin, os.Stderr)
@@ -77,10 +86,10 @@ func runFileDebug(path string, initialBreak int) {
 	run(string(src))
 
 	if hadError {
-		os.Exit(65)
+		os.Exit(exitDataErr)
 	}
 	if hadRuntimeError {
-		os.Exit(70)
+		os.Exit(exitSoftware)
 	}
 }
 
@@ -88,15 +97,15 @@ func runFile(path string) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		log.Printf("error: %v\n", err)
-		os.Exit(66)
+		os.Exit(exitNoInput)
 	}
 	run(string(bytes))
 
 	if hadError {
-		os.Exit(65)
+		os.Exit(exitDataErr)
 	}
 	if hadRuntimeError {
-		os.Exit(70)
+		os.Exit(exitSoftware)
 	}
 }
 
@@ -162,7 +171,7 @@ func main() {
 	if *debugFlag {
 		if len(args) != 1 {
 			fmt.Println("usage: loxxy -debug [-break N] <script>")
-			os.Exit(64)
+			os.Exit(exitUsage)
 		}
 
 		runFileDebug(args[0], *breakFlag)
@@ -171,7 +180,7 @@ func main() {
 
 	if len(args) > 1 {
 		fmt.Println("usage: loxxy [script]")
-		os.Exit(64)
+		os.Exit(exitUsage)
 	}
 
 	if len(args) == 1 {

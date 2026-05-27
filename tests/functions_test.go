@@ -18,6 +18,13 @@ func TestFunctions(t *testing.T) {
 		expected      any
 		expectedError bool
 	}{
+
+		{
+			name:          "Native function",
+			source:        "clock = 44; clock();",
+			expected:      nil,
+			expectedError: true,
+		},
 		{
 			name:          "CALL - native clock function",
 			source:        "var t = clock(); print t > 0;",

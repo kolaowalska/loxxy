@@ -55,9 +55,9 @@ func (e *Environment) AssignAt(distance int, name scanner.Token, value any) erro
 func (e *Environment) Snapshot() map[string]any {
 	out := make(map[string]any)
 	for env := e; env != nil; env = env.enclosing {
-		if env.isGlobalScope && env != e {
-			break
-		}
+		// if env.isGlobalScope && env != e {
+		// 	break
+		// }
 		for k, v := range env.values {
 			if _, exists := out[k]; !exists {
 				out[k] = v

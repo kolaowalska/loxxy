@@ -275,3 +275,51 @@ outer();`
 		t.Fatalf("unexpected program output: %q", progOut)
 	}
 }
+
+func TestDebuggerGlobalsInSnapshot(t *testing.T) {
+	// Definiujemy kod ze zmienną globalną i lokalną wewnątrz funkcji
+	source :=
+		`var globalVar = 999;
+	fun myFunc() {
+	  var localVar = 111;
+	  print localVar;
+	}
+
+myFunc();`
+
+	// Zatrzymamy się w 4 linijce (print localVar;)
+	dbg, progOut, _ := runDebuggerProgram(
+		t,
+		source,
+		"c\nc\n",
+		func(d *debugging.Debugger) {
+			d.SetBreakpoint(4)
+		},
+	)
+
+	foundLocal := false
+	foundGlobal := false
+
+	for _, pause := range dbg.PauseHistory {
+		if pause.Line == 4 {
+			// Sprawdzamy czy nasza migawka (Snapshot) ma obie zmienne
+			if pause.Locals["localVar"] == 111.0 {
+				foundLocal = true
+			}
+			if pause.Locals["globalVar"] == 999.0 {
+				foundGlobal = true
+			}
+		}
+	}
+
+	if !foundLocal {
+		t.Fatalf("expected localVar=111 in snapshot")
+	}
+	if !foundGlobal {
+		t.Fatalf("expected globalVar=999 in snapshot, but it was missing!")
+	}
+
+	if progOut != "111\n" {
+		t.Fatalf("unexpected program output: %q", progOut)
+	}
+}

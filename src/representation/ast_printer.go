@@ -30,12 +30,12 @@ func PrintAST(expr Expr) string {
 
 func parenthesize(name string, exprs ...Expr) string {
 	var builder strings.Builder
-
 	builder.WriteString("(" + name)
 	for _, expr := range exprs {
 		builder.WriteString(" ")
 		builder.WriteString(PrintAST(expr))
 	}
+
 	builder.WriteString(")")
 
 	return builder.String()

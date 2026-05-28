@@ -105,7 +105,6 @@ func (s *Scanner) scanToken() {
 		}
 	case '/':
 		if s.match('/') {
-			// A comment goes until the end of the line
 			for s.peek() != '\n' && !s.isAtEnd() {
 				s.advance()
 			}
@@ -119,7 +118,6 @@ func (s *Scanner) scanToken() {
 		s.line++
 	case '"':
 		s.string()
-
 	default:
 		if s.isDigit(c) {
 			s.number()
@@ -142,7 +140,6 @@ func (s *Scanner) addToken(tType TokenType) {
 }
 func (s *Scanner) addTokenWithLiteral(tType TokenType, literal any) {
 	text := s.source[s.start:s.current]
-
 	s.tokens = append(s.tokens,
 		Token{
 			TokenType: tType,
@@ -161,13 +158,14 @@ func (s *Scanner) match(expected byte) bool {
 	if s.source[s.current] != expected {
 		return false
 	}
+
 	s.current++
 	return true
 }
 
 func (s *Scanner) peek() byte {
 	if s.isAtEnd() {
-		return 0 //TODO: change to EOF
+		return 0 //TODO: change to EOF?
 	}
 	return s.source[s.current]
 }
@@ -215,18 +213,19 @@ func (s *Scanner) string() {
 	s.advance()
 	var val = s.source[s.start+1 : s.current-1]
 	s.addTokenWithLiteral(STRING, val)
-
 }
 
 func (s *Scanner) identifier() {
 	for s.isAlphaNumeric(s.peek()) {
 		s.advance()
 	}
+
 	var text = s.source[s.start:s.current]
 	tokenType, ok := keywords[text]
 	if !ok {
 		tokenType = IDENTIFIER
 	}
+
 	s.addToken(tokenType)
 }
 

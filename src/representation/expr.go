@@ -4,9 +4,8 @@ import (
 	scanner "github.com/kolaowalska/loxxy/src/scanning"
 )
 
-// Expr - Base interface for all expression nodes.
 type Expr interface {
-	exprNode() // dummy method
+	exprNode()
 }
 
 type Binary struct {

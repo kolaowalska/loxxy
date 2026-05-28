@@ -25,6 +25,7 @@ func (c *LoxClass) Call(i *Interpreter, arguments []any) (any, error) {
 			return nil, err
 		}
 	}
+
 	return instance, nil
 }
 

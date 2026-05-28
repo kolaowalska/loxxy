@@ -1,10 +1,3 @@
-/*
-package main provides the loxxy command-line interface
-
-usage:
-
-	loxxy [script]
-*/
 package main
 
 import (
@@ -26,7 +19,6 @@ import (
 
 const (
 	exitSuccess  = 0
-	exitFailure  = 1
 	exitUsage    = 64 // incorrect command line usage
 	exitDataErr  = 65 // incorrect input data
 	exitNoInput  = 66 // input file does not exist or is unreadable
@@ -38,7 +30,6 @@ var hadRuntimeError = false
 
 var interpreter = evaluation.NewInterpreter()
 
-// LoxReporter - Concrete implementation of scanner.ErrorReporter
 type LoxReporter struct{}
 
 func (r LoxReporter) Error(line int, message string) {
@@ -83,9 +74,7 @@ func runFileDebug(path string, initialBreak int, contextSize int) {
 	}
 
 	interpreter.Hook = dbg
-
 	run(string(src))
-
 	if hadError {
 		os.Exit(exitDataErr)
 	}
@@ -100,11 +89,12 @@ func runFile(path string) {
 		log.Printf("error: %v\n", err)
 		os.Exit(exitNoInput)
 	}
-	run(string(bytes))
 
+	run(string(bytes))
 	if hadError {
 		os.Exit(exitDataErr)
 	}
+
 	if hadRuntimeError {
 		os.Exit(exitSoftware)
 	}
@@ -118,6 +108,7 @@ func runPrompt(in io.Reader, out io.Writer) {
 			log.Printf("error writing prompt: %v\n", err)
 			break
 		}
+
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
@@ -127,6 +118,7 @@ func runPrompt(in io.Reader, out io.Writer) {
 			log.Printf("error reading prompt: %v\n", err)
 			break
 		}
+
 		run(line)
 		hadError = false
 		hadRuntimeError = false
@@ -147,7 +139,6 @@ func run(source string) {
 	}
 
 	interpreter.ClearLocals()
-
 	resolver := resolving.NewResolver(interpreter, reporter)
 	_ = resolver.ResolveStatements(statements)
 	if hadError {
@@ -159,7 +150,6 @@ func run(source string) {
 		if errors.Is(err, debugging.ErrQuit) {
 			os.Exit(exitSuccess)
 		}
-
 		if rterr, ok := errors.AsType[*evaluation.RuntimeError](err); ok {
 			reportRuntimeError(rterr)
 		}
@@ -178,8 +168,7 @@ func main() {
 
 	flag.Parse()
 	args := flag.Args()
-
-	// silently set debug mode
+	
 	isDebugMode := *debugFlag || *breakFlag > 0
 
 	if isDebugMode {

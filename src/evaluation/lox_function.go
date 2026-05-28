@@ -29,11 +29,11 @@ func (f *LoxFunction) Call(i *Interpreter, arguments []any) (any, error) {
 	if name == "" {
 		name = "<fn>"
 	}
+
 	i.callStack = append(i.callStack, CallFrame{Name: name, Line: f.declaration.Name.Line})
 	defer func() { i.callStack = i.callStack[:len(i.callStack)-1] }()
 
 	environment := NewEnvironment(f.closure)
-
 	for j, param := range f.declaration.Params {
 		environment.Define(param.Lexeme, arguments[j])
 	}

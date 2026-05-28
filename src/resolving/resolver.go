@@ -62,6 +62,7 @@ func (r *Resolver) declare(name scanner.Token) {
 	if _, exists := scope[name.Lexeme]; exists {
 		r.reporter.TokenError(name, "already a variable with this name in this scope")
 	}
+
 	scope[name.Lexeme] = false
 }
 
@@ -79,6 +80,7 @@ func (r *Resolver) ResolveStatements(statements []representation.Stmt) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -154,10 +156,10 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 
 		if s.Superclass != nil {
 			r.currentClass = ClassTypeSubclass
-			// prevents class Dog < Dog {}
 			if s.Name.Lexeme == s.Superclass.Name.Lexeme {
 				r.reporter.TokenError(s.Superclass.Name, "a class can't inherit from itself.")
 			}
+
 			err := r.resolveExpr(s.Superclass)
 			if err != nil {
 				return err
@@ -169,12 +171,12 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 
 		r.beginScope()
 		r.scopes[len(r.scopes)-1]["this"] = true
-
 		for _, method := range s.Methods {
 			declaration := FunctionTypeMethod
 			if method.Name.Lexeme == "init" {
 				declaration = FunctionTypeInitializer
 			}
+
 			err := r.resolveFunction(method, declaration)
 			if err != nil {
 				return err
@@ -185,10 +187,11 @@ func (r *Resolver) resolveStmt(stmt representation.Stmt) error {
 		if s.Superclass != nil {
 			r.endScope()
 		}
-		r.currentClass = enclosingClass
 
+		r.currentClass = enclosingClass
 		return nil
 	}
+
 	return nil
 }
 
@@ -271,6 +274,7 @@ func (r *Resolver) resolveExpr(expr representation.Expr) error {
 		}
 		r.resolveLocal(e, e.Keyword)
 	}
+
 	return nil
 }
 
@@ -286,15 +290,15 @@ func (r *Resolver) resolveLocal(expr representation.Expr, name scanner.Token) {
 func (r *Resolver) resolveFunction(function *representation.Function, fType FunctionType) error {
 	enclosingFunction := r.currentFunction
 	r.currentFunction = fType
-
 	r.beginScope()
 	for _, param := range function.Params {
 		r.declare(param)
 		r.define(param)
 	}
+
 	err := r.ResolveStatements(function.Body)
 	r.endScope()
-
 	r.currentFunction = enclosingFunction
+
 	return err
 }

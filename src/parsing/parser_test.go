@@ -8,20 +8,6 @@ import (
 	"github.com/kolaowalska/loxxy/src/testutils"
 )
 
-//type MockReporter struct {
-//	HadError    bool
-//	LastMessage string
-//}
-//
-//func (m *MockReporter) TokenError(t scanner.Token, message string) {
-//	m.HadError = true
-//	m.LastMessage = message
-//}
-//func (m *MockReporter) Error(line int, message string) {
-//	m.HadError = true
-//	m.LastMessage = message
-//}
-
 func TestParser_ValidExpressions(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -65,7 +51,7 @@ func TestParser_ValidExpressions(t *testing.T) {
 
 		// Misc
 		{"nil equality", "nil == false", "(== nil false)"},
-		{"string and number combination", "\"123\" + 456", "(+ 123 456)"}, //I don't know if this does make sense, but it should go through at parsing stage
+		{"string and number combination", "\"123\" + 456", "(+ 123 456)"},
 		{"mega test", "1 == 2 < 3 + 4 * 5", "(== 1 (< 2 (+ 3 (* 4 5))))"},
 	}
 
@@ -127,7 +113,6 @@ func TestParser_SyntaxErrors(t *testing.T) {
 				t.Errorf("expected parser to report an error for %q, but it didn't ", tt.source)
 			}
 
-			// If it bombs here, check error messages, bcs they do not exist when i'm writing this, so might be differences
 			if mock.HadError && mock.LastMessage != tt.expectedError {
 				t.Errorf("expected error message %q, got %q", tt.expectedError, mock.LastMessage)
 			}

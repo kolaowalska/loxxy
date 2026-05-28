@@ -9,19 +9,15 @@ import (
 func (d *Debugger) commandLoop() error {
 	for {
 		_, _ = fmt.Fprint(d.out, "> ")
-
 		line, _ := d.in.ReadString('\n')
 		line = strings.TrimSpace(line)
 
 		switch {
-
 		case line == "" || line == "s":
-			// Enter or s → step
 			d.StepMode = true
 			return nil
 
 		case line == "c":
-			// continue
 			return nil
 
 		case strings.HasPrefix(line, "b "):

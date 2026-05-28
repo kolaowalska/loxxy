@@ -37,7 +37,6 @@ func NewParser(tokens []scanner.Token, reporter ErrorReporter) *Parser {
 
 func (p *Parser) Parse() ([]representation.Stmt, error) {
 	var statements []representation.Stmt
-
 	for !p.isAtEnd() {
 		dec, err := p.declaration()
 		if err != nil {
@@ -45,6 +44,7 @@ func (p *Parser) Parse() ([]representation.Stmt, error) {
 		}
 		statements = append(statements, dec)
 	}
+
 	return statements, nil
 }
 
@@ -72,6 +72,7 @@ func (p *Parser) assignment() (representation.Expr, error) {
 		}
 		_ = p.error(equals, msgInvalidAssignment)
 	}
+
 	return expr, nil
 }
 
@@ -89,6 +90,7 @@ func (p *Parser) or() (representation.Expr, error) {
 		}
 		expr = &representation.Logical{Left: expr, Operator: operator, Right: right}
 	}
+
 	return expr, nil
 }
 
@@ -106,6 +108,7 @@ func (p *Parser) and() (representation.Expr, error) {
 		}
 		expr = &representation.Logical{Left: expr, Operator: operator, Right: right}
 	}
+
 	return expr, nil
 }
 
@@ -113,17 +116,21 @@ func (p *Parser) declaration() (representation.Stmt, error) {
 	if p.match(scanner.CLASS) {
 		return p.classDeclaration()
 	}
+
 	if p.match(scanner.FUN) {
 		return p.function("function")
 	}
+
 	if p.match(scanner.VAR) {
 		return p.varDeclaration()
 	}
+
 	stmt, err := p.statement()
 	if err != nil {
 		p.synchronize()
 		return nil, err
 	}
+
 	return stmt, nil
 }
 
@@ -172,6 +179,7 @@ func (p *Parser) statement() (representation.Stmt, error) {
 	if p.match(scanner.RETURN) {
 		return p.returnStatement()
 	}
+
 	return p.expressionStatement()
 }
 
@@ -210,10 +218,12 @@ func (p *Parser) printStatement() (representation.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	_, err = p.consume(scanner.SEMICOLON, msgSemicolon)
 	if err != nil {
 		return nil, err
 	}
+
 	return &representation.Print{Expression: value}, nil
 }
 
@@ -222,16 +232,17 @@ func (p *Parser) expressionStatement() (representation.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	_, err = p.consume(scanner.SEMICOLON, msgSemicolon)
 	if err != nil {
 		return nil, err
 	}
+
 	return &representation.Expression{Expression: expr}, nil
 }
 
 func (p *Parser) block() ([]representation.Stmt, error) {
 	var statements []representation.Stmt
-
 	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
 		dec, err := p.declaration()
 		if err != nil {
@@ -239,10 +250,12 @@ func (p *Parser) block() ([]representation.Stmt, error) {
 		}
 		statements = append(statements, dec)
 	}
+
 	_, err := p.consume(scanner.RIGHT_BRACE, msgRightCurlyParen)
 	if err != nil {
 		return nil, err
 	}
+
 	return statements, nil
 }
 
@@ -271,6 +284,7 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 			return nil, err
 		}
 	}
+
 	_, err = p.consume(scanner.SEMICOLON, "expect ';' after loop condition")
 	if err != nil {
 		return nil, err
@@ -283,6 +297,7 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 			return nil, err
 		}
 	}
+
 	_, err = p.consume(scanner.RIGHT_PAREN, "expect ')' after for clauses")
 	if err != nil {
 		return nil, err
@@ -293,7 +308,6 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 		return nil, err
 	}
 
-	// desugaring
 	if increment != nil {
 		body = &representation.Block{
 			Statements: []representation.Stmt{body, &representation.Expression{Expression: increment}},
@@ -305,7 +319,6 @@ func (p *Parser) forStatement() (representation.Stmt, error) {
 	}
 
 	body = &representation.While{Condition: condition, Body: body}
-
 	if initializer != nil {
 		body = &representation.Block{
 			Statements: []representation.Stmt{initializer, body},
@@ -320,21 +333,23 @@ func (p *Parser) whileStatement() (representation.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	condition, err := p.expression()
 	if err != nil {
 		return nil, err
 	}
+
 	_, err = p.consume(scanner.RIGHT_PAREN, "expect ')' after condition")
 	if err != nil {
 		return nil, err
 	}
+
 	body, err := p.statement()
 	if err != nil {
 		return nil, err
 	}
 
 	return &representation.While{Condition: condition, Body: body}, nil
-
 }
 
 func (p *Parser) match(types ...scanner.TokenType) bool {
@@ -344,6 +359,7 @@ func (p *Parser) match(types ...scanner.TokenType) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -397,12 +413,14 @@ func (p *Parser) equality() (representation.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		expr = &representation.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
 		}
 	}
+
 	return expr, nil
 }
 
@@ -419,12 +437,14 @@ func (p *Parser) comparison() (representation.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		expr = &representation.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
 		}
 	}
+
 	return expr, nil
 }
 
@@ -441,12 +461,14 @@ func (p *Parser) term() (representation.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		expr = &representation.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
 		}
 	}
+
 	return expr, nil
 }
 
@@ -463,12 +485,14 @@ func (p *Parser) factor() (representation.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		expr = &representation.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
 		}
 	}
+
 	return expr, nil
 }
 
@@ -480,11 +504,13 @@ func (p *Parser) unary() (representation.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		return &representation.Unary{
 			Operator: operator,
 			Right:    right,
 		}, nil
 	}
+
 	return p.call()
 }
 
@@ -510,12 +536,12 @@ func (p *Parser) call() (representation.Expr, error) {
 			break
 		}
 	}
+
 	return expr, nil
 }
 
 func (p *Parser) finishCall(callee representation.Expr) (representation.Expr, error) {
 	var arguments []representation.Expr
-
 	if !p.check(scanner.RIGHT_PAREN) {
 		for {
 			if len(arguments) >= 255 {
@@ -623,14 +649,13 @@ func (p *Parser) returnStatement() (representation.Stmt, error) {
 	}
 
 	_, err = p.consume(scanner.SEMICOLON, "expect ';' after return value")
-
 	if err != nil {
 		return nil, err
 	}
+
 	return &representation.Return{Keyword: keyword, Value: value}, nil
 }
 
-// functions
 func (p *Parser) function(kind string) (representation.Stmt, error) {
 	name, err := p.consume(scanner.IDENTIFIER, "expect "+kind+" name")
 	if err != nil {
@@ -648,12 +673,13 @@ func (p *Parser) function(kind string) (representation.Stmt, error) {
 			if len(parameters) >= 255 {
 				_ = p.error(p.peek(), "can't have more than 255 parameters")
 			}
+
 			param, err := p.consume(scanner.IDENTIFIER, "expect parameter name")
 			if err != nil {
 				return nil, err
 			}
-			parameters = append(parameters, param)
 
+			parameters = append(parameters, param)
 			if !p.match(scanner.COMMA) {
 				break
 			}
@@ -677,7 +703,6 @@ func (p *Parser) function(kind string) (representation.Stmt, error) {
 	return &representation.Function{Name: name, Params: parameters, Body: body}, nil
 }
 
-// classes
 func (p *Parser) classDeclaration() (representation.Stmt, error) {
 	name, err := p.consume(scanner.IDENTIFIER, "expect class name")
 	if err != nil {
@@ -690,6 +715,7 @@ func (p *Parser) classDeclaration() (representation.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		superclass = &representation.Variable{Name: p.previous()}
 	}
 
@@ -704,6 +730,7 @@ func (p *Parser) classDeclaration() (representation.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		methods = append(methods, method.(*representation.Function))
 	}
 

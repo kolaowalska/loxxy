@@ -20,19 +20,16 @@ type PauseSnapshot struct {
 }
 
 type Debugger struct {
-	breakpoints map[int]bool
-	StepMode    bool
-	sourceLines []string
-	ContextSize int
-
-	in  *bufio.Reader
-	out io.Writer
-
+	breakpoints    map[int]bool
+	StepMode       bool
+	sourceLines    []string
+	ContextSize    int
+	in             *bufio.Reader
+	out            io.Writer
 	LastPausedLine int
 	LastFrames     []evaluation.CallFrame
 	LastLocals     map[string]any
-
-	PauseHistory []PauseSnapshot
+	PauseHistory   []PauseSnapshot
 }
 
 func NewDebugger(in io.Reader, out io.Writer) *Debugger {
@@ -84,9 +81,7 @@ func (d *Debugger) OnStatement(
 	d.LastPausedLine = line
 	d.LastFrames = snapshot.Frames
 	d.LastLocals = snapshot.Locals
-
 	d.PauseHistory = append(d.PauseHistory, snapshot)
-
 	d.StepMode = false
 	d.renderPause(line, frames, env)
 

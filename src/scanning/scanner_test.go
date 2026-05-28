@@ -86,7 +86,6 @@ func TestScanner_LexicalErrors(t *testing.T) {
 			scanner := NewScanner(tt.source, mock2)
 			scanner.ScanTokens()
 
-			// ERROR IS EXPECTED
 			if !mock2.HadError {
 				t.Errorf("expected scanner to report an error for %q, but it didn't", tt.source)
 			}

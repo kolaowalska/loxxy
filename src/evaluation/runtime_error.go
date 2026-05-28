@@ -28,5 +28,6 @@ func checkNumberOperands(operator scanner.Token, left any, right any) error {
 	if leftIsNumber && rightIsNumber {
 		return nil
 	}
+
 	return newRuntimeError(operator, "operands must be numbers.")
 }

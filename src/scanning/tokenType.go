@@ -50,7 +50,8 @@ const (
 	VAR
 	WHILE
 
-	EOF // end of file
+	// end of file
+	EOF
 )
 
 func (t TokenType) String() string {
@@ -64,6 +65,7 @@ func (t TokenType) String() string {
 		"PRINT", "RETURN", "SUPER", "THIS", "TRUE", "VAR", "WHILE",
 		"EOF",
 	}
+
 	if t < 0 || int(t) >= len(tokens) {
 		return "UNKNOWN_TOKEN"
 	}

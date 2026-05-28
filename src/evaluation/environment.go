@@ -15,6 +15,7 @@ func NewEnvironment(enclosing *Environment) *Environment {
 func (e *Environment) Define(name string, value any) {
 	e.values[name] = value
 }
+
 func (e *Environment) Get(name scanner.Token) (any, error) {
 	if val, ok := e.values[name.Lexeme]; ok {
 		return val, nil
@@ -22,8 +23,10 @@ func (e *Environment) Get(name scanner.Token) (any, error) {
 	if e.enclosing != nil {
 		return e.enclosing.Get(name)
 	}
+
 	return nil, newRuntimeError(name, "undefined variable '"+name.Lexeme+"'.")
 }
+
 func (e *Environment) Assign(name scanner.Token, value any) error {
 	if _, ok := e.values[name.Lexeme]; ok {
 		e.values[name.Lexeme] = value
@@ -32,6 +35,7 @@ func (e *Environment) Assign(name scanner.Token, value any) error {
 	if e.enclosing != nil {
 		return e.enclosing.Assign(name, value)
 	}
+
 	return newRuntimeError(name, "undefined variable '"+name.Lexeme+"'.")
 }
 
@@ -40,6 +44,7 @@ func (e *Environment) ancestor(distance int) *Environment {
 	for range distance {
 		environment = environment.enclosing
 	}
+
 	return environment
 }
 
@@ -55,9 +60,6 @@ func (e *Environment) AssignAt(distance int, name scanner.Token, value any) erro
 func (e *Environment) Snapshot() map[string]any {
 	out := make(map[string]any)
 	for env := e; env != nil; env = env.enclosing {
-		// if env.isGlobalScope && env != e {
-		// 	break
-		// }
 		for k, v := range env.values {
 			if _, exists := out[k]; !exists {
 				out[k] = v
@@ -67,5 +69,6 @@ func (e *Environment) Snapshot() map[string]any {
 			break
 		}
 	}
+
 	return out
 }

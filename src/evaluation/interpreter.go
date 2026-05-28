@@ -393,7 +393,7 @@ func (i *Interpreter) Evaluate(expr representation.Expr) (any, error) {
 			return nil, newRuntimeError(e.Paren, "can only call functions and classes.")
 		}
 		if len(arguments) != function.Arity() {
-			return nil, newRuntimeError(e.Paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)))
+			return nil, newRuntimeError(e.Paren, fmt.Sprintf("expected %d arguments but got %d.", function.Arity(), len(arguments)))
 		}
 
 		return function.Call(i, arguments)

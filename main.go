@@ -168,7 +168,6 @@ func main() {
 
 	flag.Parse()
 	args := flag.Args()
-	
 	isDebugMode := *debugFlag || *breakFlag > 0
 
 	if isDebugMode {
